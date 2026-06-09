@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <!-- Phone body -->
+  <rect x="6" y="1.5" width="12" height="19" rx="2.5" stroke="var(--r-neutral-body,#3E495E)" stroke-width="1.5"/>
+  <!-- Speaker bar -->
+  <line x1="10" y1="4.5" x2="14" y2="4.5" stroke="var(--r-neutral-body,#3E495E)" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Key: head circle -->
+  <circle cx="10.5" cy="12" r="2.5" stroke="var(--r-neutral-body,#3E495E)" stroke-width="1.5"/>
+  <!-- Key: shaft + teeth -->
+  <path d="M13 12H18M16 12V13.5M18 12V13.5" stroke="var(--r-neutral-body,#3E495E)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Home pill -->
+  <line x1="11" y1="18" x2="13" y2="18" stroke="var(--r-neutral-body,#3E495E)" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

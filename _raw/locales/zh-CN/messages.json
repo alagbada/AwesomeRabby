@@ -560,6 +560,7 @@
         "description": "不支持导入多个基于二维码的硬件钱包。\n请先删除 {{0}} 中的所有地址，然后再导入新的设备"
       },
       "connectHardwareWallets": "连接硬件钱包",
+      "connectMPCWallet": "?? MPC ??",
       "firefoxLedgerDisableTips": "Ledger和Firefox不兼容",
       "connectMobileWalletApps": "连接手机钱包",
       "connectInstitutionalWallets": "连接机构钱包",
@@ -2137,7 +2138,20 @@
         "sub-title": "此操作是永久性的。请查看以下内容以保护您的资产：",
         "check1": "我明白，删除这个地址也会删除它的私钥。Rabby 不能为我恢复它们。"
       },
-      "notBackup": "未备份"
+      "notBackup": "未备份",
+      "exportMPCKeyShare": "导出密钥份额备份",
+      "exportMPCModal": {
+        "title": "设置备份口令",
+        "desc": "此口令用于加密您的密钥份额文件。请将其与文件分开保存——两者同时拥有即可恢复您的钱包。",
+        "passphraseLabel": "备份口令",
+        "passphrasePlaceholder": "请输入强口令",
+        "confirmLabel": "确认口令",
+        "confirmPlaceholder": "再次输入口令",
+        "download": "下载备份",
+        "passphraseRequired": "请输入口令",
+        "passphraseMismatch": "两次口令不一致",
+        "success": "备份文件已下载"
+      }
     },
     "preferMetamaskDapps": {
       "title": "优先使用MetaMask连接的Dapp",
@@ -2971,7 +2985,35 @@
       },
       "importWalletType": {
         "hardwareWallet": "硬件钱包",
-        "seedOrKey": "助记词或私钥"
+        "seedOrKey": "助记词或私钥",
+        "mpcWallet": "MPC 钱包 (PrismTx)",
+        "mpcWalletDesc": "从 .json 备份文件恢复"
+      },
+      "createWalletType": {
+        "title": "创建新钱包",
+        "mpcWallet": "MPC 钱包",
+        "mpcWalletDesc": "2-of-2 安全保障 — 每笔交易都需要您的手机确认",
+        "seedPhraseWallet": "助记词",
+        "seedPhraseWalletDesc": "标准 12 词助记词钱包"
+      },
+      "importMPCRestore": {
+        "title": "恢复 MPC 钱包",
+        "subtitle": "上传您从之前 PrismTx 安装中导出的备份文件。",
+        "fileLabel": "备份文件（.json）",
+        "filePlaceholder": "点击选择备份文件…",
+        "browse": "浏览",
+        "passphraseLabel": "备份口令",
+        "passphrasePlaceholder": "导出时设置的口令",
+        "passwordLabel": "设置钱包密码",
+        "passwordPlaceholder": "至少 8 个字符",
+        "passwordConfirmPlaceholder": "确认钱包密码",
+        "restoreButton": "恢复钱包",
+        "errorNoFile": "请选择备份文件",
+        "errorNoPassphrase": "请输入备份口令",
+        "errorNoPassword": "请设置钱包密码",
+        "errorPasswordMismatch": "两次密码不一致",
+        "errorPasswordTooShort": "密码至少 8 个字符",
+        "errorGeneric": "恢复失败——请检查您的文件和口令"
       }
     },
     "metamaskModeDapps": {

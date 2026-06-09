@@ -12,6 +12,8 @@ export const WaitingSignComponent = {
   [KEYRING_CLASS.PRIVATE_KEY]: 'PrivatekeyWaiting',
   [KEYRING_CLASS.Coinbase]: 'CoinbaseWaiting',
   [KEYRING_CLASS.HARDWARE.IMKEY]: 'ImKeyHardwareWaiting',
+  // PrismTx MPC — signing is performed in-popup over BLE (no background keyring call)
+  [KEYRING_CLASS.MPC]: 'MPCWaiting',
 };
 
 export const WaitingSignMessageComponent = {
@@ -26,4 +28,6 @@ export const WaitingSignMessageComponent = {
   [KEYRING_CLASS.HARDWARE.IMKEY]: 'ImKeyHardwareWaiting',
   [KEYRING_CLASS.MNEMONIC]: 'PrivatekeyWaiting',
   [KEYRING_CLASS.PRIVATE_KEY]: 'PrivatekeyWaiting',
+  // PrismTx MPC — personal_sign / signTypedData also handled in-popup over BLE
+  [KEYRING_CLASS.MPC]: 'MPCWaiting',
 };

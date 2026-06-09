@@ -9,6 +9,8 @@ import { HardwareWallets } from '@/ui/views/AddAddress/HardwareWallets';
 import ImportAddressSuccess from '@/ui/views/AddAddress/ImportAddressSuccess';
 import ImportKeyOrSeed from '@/ui/views/AddAddress/ImportKeyOrSeed';
 import { InstitutionalWallets } from '@/ui/views/AddAddress/InstitutionalWallets';
+import { MPCPairing } from '@/ui/views/MPCPairing';
+import { ImportMPCRestore } from '@/ui/views/NewUserImport/ImportMPCRestore';
 import { AddFromCurrentSeedPhrase } from '@/ui/views/AddFromCurrentSeedPhrase';
 import { ImportCoboArgus } from '@/ui/views/ImportCoboArgus/ImportCoboArgus';
 import { ImportCoinbase } from '@/ui/views/ImportCoinbase/ImportCoinbase';
@@ -126,6 +128,10 @@ const AddAddressModalContent: React.FC = () => {
         />
       ) : importType === 'hardware-wallets' ? (
         <HardwareWallets isInModal onBack={onBack} onNavigate={onNavigate} />
+      ) : importType === 'mpc-pairing' ? (
+        <MPCPairing isInModal onBack={onBack} onNavigate={onNavigate} />
+      ) : importType === 'mpc-restore' ? (
+        <ImportMPCRestore />
       ) : importType === 'institutional-wallets' ? (
         <InstitutionalWallets
           isInModal

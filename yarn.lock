@@ -5285,6 +5285,83 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@safeheron/crypto-commitment@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@safeheron/crypto-commitment@npm:1.0.0"
+  dependencies:
+    "@safeheron/crypto-rand": "npm:^1.0.0"
+    "@safeheron/crypto-utils": "npm:^1.0.1"
+    assert: "npm:^2.0.0"
+    bn.js: "npm:^5.2.1"
+    crypto-js: "npm:3.3.0"
+    elliptic: "npm:^6.5.3"
+  checksum: 10c0/fa54e30765cdcc3fbbbfa90f2f41f7f7c31304e514d5cb7a952a3383f07a8f38ec5ea73a2fbbee8c820c50611690e385c33fb6e6df3800a44e52d286c72c1fbf
+  languageName: node
+  linkType: hard
+
+"@safeheron/crypto-paillier@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@safeheron/crypto-paillier@npm:1.0.0"
+  dependencies:
+    "@safeheron/crypto-rand": "npm:^1.0.0"
+    bn.js: "npm:^5.2.1"
+  checksum: 10c0/aeb137dcfaae183812864a5c0ea0f4b06612d48e86467aca0f44fd8033c37b6df0676f39020fba1923cf7404db62a14fad265d76a891e9e683a9f5a46a2cab0a
+  languageName: node
+  linkType: hard
+
+"@safeheron/crypto-rand@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@safeheron/crypto-rand@npm:1.0.0"
+  dependencies:
+    bn.js: "npm:^5.2.1"
+  checksum: 10c0/814b56360e7be8e95f0bfd476770a24cef0e08f3c2dc58a932cb80b21f377504d0e2e2d1b62d94e88d334cb1d1447c8905d1434559d4ef041daa96609a8d98c3
+  languageName: node
+  linkType: hard
+
+"@safeheron/crypto-utils@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@safeheron/crypto-utils@npm:1.0.1"
+  dependencies:
+    crypto-js: "npm:3.3.0"
+  checksum: 10c0/3a2d0470d9d9cdcddb0a18141992ef70b34de85d399acd9b24cc21fde20894bc76760f1b0651b171086ddedcf70d3320c89dfe301a4c66807c9b33158b344aa3
+  languageName: node
+  linkType: hard
+
+"@safeheron/crypto-zkp@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@safeheron/crypto-zkp@npm:1.0.0"
+  dependencies:
+    "@safeheron/crypto-paillier": "npm:^1.0.0"
+    "@safeheron/crypto-rand": "npm:^1.0.0"
+    "@safeheron/crypto-utils": "npm:^1.0.1"
+    bn.js: "npm:^5.2.1"
+    crypto-js: "npm:3.3.0"
+    elliptic: "npm:^6.5.3"
+  checksum: 10c0/c282b9ab600e45516eeb9ea77886e664469cc3e2def000778378616666c738ddcd1931c8acbbf1c90a16ab465f78a16ecae451579b2b7cdda9062bf7ab6c5608
+  languageName: node
+  linkType: hard
+
+"@safeheron/two-party-ecdsa-js@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@safeheron/two-party-ecdsa-js@npm:1.0.1"
+  dependencies:
+    "@safeheron/crypto-commitment": "npm:^1.0.0"
+    "@safeheron/crypto-paillier": "npm:^1.0.0"
+    "@safeheron/crypto-rand": "npm:^1.0.0"
+    "@safeheron/crypto-utils": "npm:^1.0.1"
+    "@safeheron/crypto-zkp": "npm:^1.0.0"
+    assert: "npm:^2.0.0"
+    bn.js: "npm:^5.2.1"
+    bs58check: "npm:^2.1.2"
+    crypto-js: "npm:3.3.0"
+    elliptic: "npm:^6.5.3"
+    hash.js: "npm:^1.1.7"
+    protobufjs: "npm:^6.11.3"
+    typescript: "npm:^4.0.5"
+  checksum: 10c0/8b4cd401cbb5f45dde883d7f4234abd91caba33c15ac0c8b84c1a3c08164c1295dde0c8b710337bde6228108b019a626e89289d1f15c08141221783015388696
+  languageName: node
+  linkType: hard
+
 "@scure/base@npm:1.2.6, @scure/base@npm:^1.1.3, @scure/base@npm:^1.1.7, @scure/base@npm:~1.2.5":
   version: 1.2.6
   resolution: "@scure/base@npm:1.2.6"
@@ -7866,6 +7943,13 @@ __metadata:
   version: 1.0.10
   resolution: "@types/w3c-web-usb@npm:1.0.10"
   checksum: 10c0/3df5733a334c5fd22ef3fa1e97a70c029542591058d11905d1304c26bab8705d975168818b5b7ec21fef5591cdea776dbdb31d4c04aa433e7fe7d61dd7ebdecf
+  languageName: node
+  linkType: hard
+
+"@types/web-bluetooth@npm:^0.0.21":
+  version: 0.0.21
+  resolution: "@types/web-bluetooth@npm:0.0.21"
+  checksum: 10c0/5f47c5ec452ca31e6a9b44c8aaa54b66c4f57d4aca00166c45902a3883139580e14b254b774172ff982ba4458cc444b5aa59bb4573c2fd34562cfa599721f8e4
   languageName: node
   linkType: hard
 
@@ -11777,6 +11861,13 @@ __metadata:
     randombytes: "npm:^2.0.0"
     randomfill: "npm:^1.0.3"
   checksum: 10c0/0c20198886576050a6aa5ba6ae42f2b82778bfba1753d80c5e7a090836890dc372bdc780986b2568b4fb8ed2a91c958e61db1f0b6b1cc96af4bd03ffc298ba92
+  languageName: node
+  linkType: hard
+
+"crypto-js@npm:3.3.0":
+  version: 3.3.0
+  resolution: "crypto-js@npm:3.3.0"
+  checksum: 10c0/10b5d91bdc85095df9be01f9d0d954b8a3aba6202f143efa6215b8b3d5dd984e0883e10aeff792ef4a51b77cd4442320242b496acf6dce5069d0e0fc2e1d75d2
   languageName: node
   linkType: hard
 
@@ -21030,6 +21121,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"protobufjs@npm:^6.11.3":
+  version: 6.11.6
+  resolution: "protobufjs@npm:6.11.6"
+  dependencies:
+    "@protobufjs/aspromise": "npm:^1.1.2"
+    "@protobufjs/base64": "npm:^1.1.2"
+    "@protobufjs/codegen": "npm:^2.0.4"
+    "@protobufjs/eventemitter": "npm:^1.1.0"
+    "@protobufjs/fetch": "npm:^1.1.0"
+    "@protobufjs/float": "npm:^1.0.2"
+    "@protobufjs/inquire": "npm:^1.1.0"
+    "@protobufjs/path": "npm:^1.1.2"
+    "@protobufjs/pool": "npm:^1.1.0"
+    "@protobufjs/utf8": "npm:^1.1.0"
+    "@types/long": "npm:^4.0.1"
+    "@types/node": "npm:>=13.7.0"
+    long: "npm:^4.0.0"
+  bin:
+    pbjs: bin/pbjs
+    pbts: bin/pbts
+  checksum: 10c0/a7ed63a75b86c7d22abdfef48e9775f373befbaad4beceadf5bd047066365d735386d57851b35f89ae2c1afdea2da1c93a17682aa9a4a8f3df7ca54ccdce309b
+  languageName: node
+  linkType: hard
+
 "proxy-addr@npm:^2.0.7, proxy-addr@npm:~2.0.7":
   version: 2.0.7
   resolution: "proxy-addr@npm:2.0.7"
@@ -21317,6 +21432,7 @@ __metadata:
     "@safe-global/protocol-kit": "npm:5.0.3"
     "@safe-global/sdk-starter-kit": "npm:1.1.1"
     "@safe-global/types-kit": "npm:1.0.2"
+    "@safeheron/two-party-ecdsa-js": "npm:^1.0.1"
     "@scure/bip39": "npm:1.2.1"
     "@sentry/browser": "npm:6.7.2"
     "@sentry/react": "npm:6.7.2"
@@ -21343,6 +21459,7 @@ __metadata:
     "@types/sinon": "npm:10.0.13"
     "@types/styled-components": "npm:5.1.25"
     "@types/w3c-web-hid": "npm:1.0.3"
+    "@types/web-bluetooth": "npm:^0.0.21"
     "@types/webextension-polyfill": "npm:0.10.2"
     "@typescript-eslint/eslint-plugin": "npm:7.1.1"
     "@typescript-eslint/parser": "npm:7.1.1"
@@ -25592,6 +25709,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:^4.0.5":
+  version: 4.9.5
+  resolution: "typescript@npm:4.9.5"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10c0/5f6cad2e728a8a063521328e612d7876e12f0d8a8390d3b3aaa452a6a65e24e9ac8ea22beb72a924fd96ea0a49ea63bb4e251fb922b12eedfb7f7a26475e5c56
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>":
   version: 5.3.3
   resolution: "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"
@@ -25599,6 +25726,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/1d0a5f4ce496c42caa9a30e659c467c5686eae15d54b027ee7866744952547f1be1262f2d40de911618c242b510029d51d43ff605dba8fb740ec85ca2d3f9500
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A^4.0.5#optional!builtin<compat/typescript>":
+  version: 4.9.5
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>::version=4.9.5&hash=289587"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10c0/e3333f887c6829dfe0ab6c1dbe0dd1e3e2aeb56c66460cb85c5440c566f900c833d370ca34eb47558c0c69e78ced4bfe09b8f4f98b6de7afed9b84b8d1dd06a1
   languageName: node
   linkType: hard
 

@@ -1995,6 +1995,7 @@
       "importKeystore": "키스토어 가져오기",
       "selectImportMethod": "가져오기 방법 선택",
       "connectHardwareWallets": "하드웨어 지갑 연결",
+      "connectMPCWallet": "Connect MPC Wallet",
       "connectInstitutionalWallets": "기관 지갑 연결",
       "firefoxLedgerDisableTips": "Ledger는 Firefox와 호환되지 않습니다.",
       "theSeedPhraseIsInvalidPleaseCheck": "시드 문구가 유효하지 않습니다. 확인해 주세요!",
@@ -2187,7 +2188,20 @@
         "check2": "저는 Private Key 또는 Seed Phrase를 백업했음을 확인하며, 이를 삭제할 준비가 되었습니다.",
         "sub-title": "이 작업은 영구적입니다. 귀하의 자산을 보호하기 위해 다음을 검토하십시오:"
       },
-      "notBackup": "백업하지 않음"
+      "notBackup": "백업하지 않음",
+      "exportMPCKeyShare": "Export Key Share Backup",
+      "exportMPCModal": {
+        "title": "Set Backup Passphrase",
+        "desc": "This passphrase encrypts your key share file. Store it separately from the file — anyone with both can restore your wallet.",
+        "passphraseLabel": "Backup passphrase",
+        "passphrasePlaceholder": "Enter a strong passphrase",
+        "confirmLabel": "Confirm passphrase",
+        "confirmPlaceholder": "Re-enter passphrase",
+        "download": "Download Backup",
+        "passphraseRequired": "Please enter a passphrase",
+        "passphraseMismatch": "Passphrases do not match",
+        "success": "Backup file downloaded"
+      }
     },
     "preferMetamaskDapps": {
       "title": "MetaMask 선호 Dapps",
@@ -2889,7 +2903,35 @@
       },
       "importWalletType": {
         "hardwareWallet": "하드웨어 월렛",
-        "seedOrKey": "시드 문구 또는 개인 키"
+        "seedOrKey": "시드 문구 또는 개인 키",
+        "mpcWallet": "MPC Wallet (PrismTx)",
+        "mpcWalletDesc": "Restore from a .json backup file"
+      },
+      "createWalletType": {
+        "title": "Create New Wallet",
+        "mpcWallet": "MPC Wallet",
+        "mpcWalletDesc": "2-of-2 security — every transaction requires your phone",
+        "seedPhraseWallet": "Seed Phrase",
+        "seedPhraseWalletDesc": "Standard 12-word recovery phrase wallet"
+      },
+      "importMPCRestore": {
+        "title": "Restore MPC Wallet",
+        "subtitle": "Upload the backup file you exported from a previous PrismTx installation.",
+        "fileLabel": "Backup file (.json)",
+        "filePlaceholder": "Click to select backup file…",
+        "browse": "Browse",
+        "passphraseLabel": "Backup passphrase",
+        "passphrasePlaceholder": "Passphrase set at export time",
+        "passwordLabel": "Set wallet password",
+        "passwordPlaceholder": "At least 8 characters",
+        "passwordConfirmPlaceholder": "Confirm wallet password",
+        "restoreButton": "Restore Wallet",
+        "errorNoFile": "Please select a backup file",
+        "errorNoPassphrase": "Please enter the backup passphrase",
+        "errorNoPassword": "Please set a wallet password",
+        "errorPasswordMismatch": "Passwords do not match",
+        "errorPasswordTooShort": "Password must be at least 8 characters",
+        "errorGeneric": "Failed to restore wallet — check your file and passphrase"
       }
     },
     "metamaskModeDapps": {

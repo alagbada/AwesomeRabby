@@ -27,6 +27,7 @@ import GnosisKeyring, {
   TransactionBuiltEvent,
   TransactionConfirmedEvent,
 } from './eth-gnosis-keyring';
+import MPCKeyring from './eth-mpc-keyring';
 import preference, { Account } from '../preference';
 import i18n from '../i18n';
 import {
@@ -74,6 +75,7 @@ export const KEYRING_SDK_TYPES = {
   CoboArgusKeyring,
   CoinbaseKeyring,
   EthImKeyKeyring,
+  MPCKeyring,
 };
 
 export type KeyringSerializedData<T = any> = {

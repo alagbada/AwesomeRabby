@@ -16,3 +16,4 @@ export { default as Decrypt } from './Decrypt';
 export { default as ETHSign } from './ETHSign';
 export { ImportAddress } from './ImportAddress';
 export { ImKeyHardwareWaiting } from './ImKeyHardwareWaiting';
+export { MPCWaiting } from './MPCWaiting';

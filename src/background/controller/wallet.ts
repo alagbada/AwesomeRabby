@@ -15,6 +15,7 @@ import {
   permissionService,
   sessionService,
   openapiService,
+  awesomeApiService,
   pageStateCacheService,
   transactionHistoryService,
   transactionsService,
@@ -151,6 +152,10 @@ import {
 } from './utils';
 import { CoboSafeAccount } from '@/utils/cobo-agrus-sdk/cobo-agrus-sdk';
 import CoboArgusKeyring from '../service/keyring/eth-cobo-argus-keyring';
+import MPCKeyring, {
+  MPCAccountData,
+  MPCSigningContext,
+} from '../service/keyring/eth-mpc-keyring';
 import { GET_WALLETCONNECT_CONFIG, allChainIds } from '@/utils/walletconnect';
 import { estimateL1Fee } from '@/utils/l2';
 import HdKeyring from '@rabby-wallet/eth-hd-keyring';
@@ -1831,7 +1836,7 @@ export class WalletController extends BaseController {
           }
           this.updateAlianName(
             acc?.address,
-            `${WALLET_BRAND_CONTENT[acc?.brandName]} ${index + 1}`
+            `${WALLET_BRAND_CONTENT[acc?.brandName]?.name ?? acc?.brandName ?? 'Account'} ${index + 1}`
           );
         });
       });
@@ -1853,7 +1858,7 @@ export class WalletController extends BaseController {
         group.forEach((acc, index) => {
           this.updateAlianName(
             acc?.address,
-            `${BRAND_ALIAN_TYPE_TEXT[acc?.type]} ${index + 1}`
+            `${BRAND_ALIAN_TYPE_TEXT[acc?.type] ?? acc?.type ?? 'Account'} ${index + 1}`
           );
         })
       );
@@ -1873,6 +1878,78 @@ export class WalletController extends BaseController {
     }
   };
 
+  /**
+   * One-time migration: fix alias names that were incorrectly stored as
+   * "undefined N" due to a missing entry in BRAND_ALIAN_TYPE_TEXT (e.g. MPC
+   * and CoboArgus keyrings) or a missing `.name` lookup on WALLET_BRAND_CONTENT.
+   *
+   * Runs on every unlock but exits immediately once no bad names remain.
+   */
+  fixUndefinedAlianNames = async () => {
+    const aliases = contactBookService.listAlias();
+    const broken = aliases.filter((a) => /^undefined\s+\d+$/.test(a.name ?? ''));
+    if (broken.length === 0) return;
+
+    const keyrings = await keyringService.getAllTypedAccounts();
+
+    // Build address → { type, brandName } lookup
+    const addrMap = new Map<string, { type: string; brandName: string }>();
+    for (const kr of keyrings) {
+      for (const acc of kr.accounts) {
+        addrMap.set(acc.address.toLowerCase(), {
+          type: kr.type,
+          brandName: acc.brandName ?? '',
+        });
+      }
+    }
+
+    // Build per-type and per-brand ordered address lists (mirrors initAlianNames)
+    const typeGroups  = new Map<string, string[]>();   // type   → [addr…]
+    const brandGroups = new Map<string, string[]>();   // brand  → [addr…]
+
+    for (const kr of keyrings) {
+      if (kr.type === 'WalletConnect') {
+        for (const acc of kr.accounts) {
+          const key = acc.brandName ?? '';
+          if (!brandGroups.has(key)) brandGroups.set(key, []);
+          brandGroups.get(key)!.push(acc.address.toLowerCase());
+        }
+      } else {
+        if (!typeGroups.has(kr.type)) typeGroups.set(kr.type, []);
+        for (const acc of kr.accounts) {
+          typeGroups.get(kr.type)!.push(acc.address.toLowerCase());
+        }
+      }
+    }
+
+    for (const alias of broken) {
+      if (!alias.address) continue;
+      const addr = alias.address.toLowerCase();
+      const info  = addrMap.get(addr);
+      if (!info) continue;
+
+      let correctName: string;
+
+      if (info.type === 'WalletConnect') {
+        const group = brandGroups.get(info.brandName) ?? [];
+        const idx   = group.indexOf(addr);
+        const label = WALLET_BRAND_CONTENT[info.brandName]?.name
+          ?? info.brandName
+          ?? 'Account';
+        correctName = `${label} ${idx >= 0 ? idx + 1 : 1}`;
+      } else {
+        const group = typeGroups.get(info.type) ?? [];
+        const idx   = group.indexOf(addr);
+        const label = BRAND_ALIAN_TYPE_TEXT[info.type]
+          ?? info.type
+          ?? 'Account';
+        correctName = `${label} ${idx >= 0 ? idx + 1 : 1}`;
+      }
+
+      this.updateAlianName(addr, correctName);
+    }
+  };
+
   getPendingApprovalCount = () => {
     return notificationService.approvals.length;
   };
@@ -1889,6 +1966,8 @@ export class WalletController extends BaseController {
     if (!alianNameInited && alianNames.length === 0) {
       this.initAlianNames();
     }
+    // Patch any "undefined N" names written by the old bug
+    this.fixUndefinedAlianNames();
     const hasOtherProvider = preferenceService.getHasOtherProvider();
     const isDefaultWallet = preferenceService.getIsDefaultWallet();
     if (!hasOtherProvider) {
@@ -2149,7 +2228,10 @@ export class WalletController extends BaseController {
       ) {
         core = true;
       }
-      const data = await openapiService.getTotalBalance(address, core);
+      // Use self-hosted rabby-api for token balance data; fall back to DeBank on error.
+      let data = await awesomeApiService.getTotalBalance(address).catch(() =>
+        openapiService.getTotalBalance(address, core),
+      );
       let appChainTotalNetWorth = 0;
       const appChainIds: string[] = [];
       try {
@@ -6523,11 +6605,11 @@ export class WalletController extends BaseController {
       chainId = params.chainId;
     }
 
-    return openapiService.gasMarketV2({
-      customGas: params.customGas,
-      chainId,
-      tx,
-    });
+    // Use self-hosted rabby-api for gas prices; fall back to DeBank for
+    // unsupported chains (anything outside our 7-chain CHAIN_META table).
+    return awesomeApiService.gasMarketV2({ customGas: params.customGas, chainId, tx }).catch(() =>
+      openapiService.gasMarketV2({ customGas: params.customGas, chainId, tx }),
+    );
   };
 
   changeDappProvider = ({
@@ -6612,6 +6694,392 @@ export class WalletController extends BaseController {
       highligtedAddresses: filteredHighligtedAddresses,
       alianNames: filteredAlianNames,
     });
+  };
+
+  // ─── PrismTx MPC Methods ────────────────────────────────────────────────────
+
+  /**
+   * Register a new MPC account after a successful DKG pairing ceremony.
+   * Called by the pairing UI once both parties have completed key generation.
+   */
+  addMPCAccount = async (data: MPCAccountData): Promise<string[]> => {
+    let keyring = keyringService
+      .getKeyringsByType(KEYRING_CLASS.MPC)[0] as MPCKeyring | undefined;
+
+    if (!keyring) {
+      keyring = await keyringService.addNewKeyring(
+        KEYRING_CLASS.MPC
+      ) as MPCKeyring;
+    }
+
+    keyring.addAccount(data);
+    await keyringService.persistAllKeyrings();
+
+    preferenceService.setCurrentAccount({
+      address: data.address,
+      type: KEYRING_CLASS.MPC,
+      brandName: KEYRING_CLASS.MPC,
+    });
+
+    return keyring.getAccounts();
+  };
+
+  /**
+   * Returns the signing context the approval popup needs to run TSS rounds.
+   * The popup receives this, connects to the phone via BLE, runs the rounds,
+   * and assembles the final ECDSA signature without ever sending private
+   * material back to the background.
+   */
+  getMPCSigningContext = async (address: string): Promise<MPCSigningContext> => {
+    const keyring = await keyringService.getKeyringForAccount(
+      address,
+      KEYRING_CLASS.MPC
+    ) as MPCKeyring;
+    return keyring.getMPCSigningContext(address);
+  };
+
+  /**
+   * Broadcasts a raw signed transaction that was assembled by the MPC popup.
+   * Accepts a hex-encoded serialised transaction (already signed via TSS).
+   */
+  broadcastMPCSignedTransaction = async (
+    rawTxHex: string,
+    chainId: string
+  ): Promise<string> => {
+    const txHash = await this.requestETHRpc<string>(
+      { method: 'eth_sendRawTransaction', params: [rawTxHex] },
+      chainId
+    );
+    return txHash;
+  };
+
+  /**
+   * Updates the paired device details — called after re-pairing with a new phone.
+   */
+  updateMPCPairedDevice = async (
+    address: string,
+    newDeviceId: string,
+    newSessionKeyB64: string
+  ): Promise<void> => {
+    const keyring = await keyringService.getKeyringForAccount(
+      address,
+      KEYRING_CLASS.MPC
+    ) as MPCKeyring;
+    keyring.updatePairedDevice(address, newDeviceId, newSessionKeyB64);
+    await keyringService.persistAllKeyrings();
+  };
+
+  /**
+   * Removes an MPC account and clears it from preferences.
+   */
+  removeMPCAccount = async (address: string): Promise<void> => {
+    await keyringService.removeAccount(address, KEYRING_CLASS.MPC);
+  };
+
+  // ─── MPC Key Share Backup / Restore ─────────────────────────────────────────
+
+  /**
+   * Exports the P1 key share for `address` as an AES-256-GCM encrypted JSON
+   * blob.  The blob is safe to store anywhere — it is useless without the
+   * backup passphrase.
+   *
+   * Encryption: PBKDF2-SHA-256 (200 000 iterations) → AES-256-GCM.
+   * Returns a JSON string that the UI should offer as a file download.
+   */
+  exportMPCKeyShare = async (
+    address: string,
+    backupPassphrase: string
+  ): Promise<string> => {
+    const keyring = await keyringService.getKeyringForAccount(
+      address,
+      KEYRING_CLASS.MPC
+    ) as MPCKeyring;
+
+    const accountData = keyring.exportAccountData(address);
+
+    const subtle = globalThis.crypto.subtle;
+    const salt   = globalThis.crypto.getRandomValues(new Uint8Array(16));
+    const iv     = globalThis.crypto.getRandomValues(new Uint8Array(12));
+
+    const keyMaterial = await subtle.importKey(
+      'raw',
+      new TextEncoder().encode(backupPassphrase),
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+    const aesKey = await subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: 200_000, hash: 'SHA-256' },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt']
+    );
+
+    const ciphertext = await subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      aesKey,
+      new TextEncoder().encode(JSON.stringify(accountData))
+    );
+
+    const toB64 = (buf: ArrayBuffer | Uint8Array) =>
+      btoa(String.fromCharCode(...new Uint8Array(buf instanceof ArrayBuffer ? buf : buf.buffer)));
+
+    return JSON.stringify(
+      {
+        version:    1,
+        app:        'PrismTx',
+        address,
+        encrypted:  toB64(ciphertext),
+        iv:         toB64(iv),
+        salt:       toB64(salt),
+        iterations: 200_000,
+        digest:     'SHA-256',
+      },
+      null,
+      2
+    );
+  };
+
+  /**
+   * Decrypts a backup blob produced by `exportMPCKeyShare` and registers the
+   * recovered account in the MPC keyring.
+   *
+   * The vault must already be unlocked (wallet.boot / wallet.unlock) before
+   * calling this.  Returns the checksummed address of the restored account.
+   */
+  importMPCAccountFromBackup = async (
+    backupJson: string,
+    backupPassphrase: string
+  ): Promise<string> => {
+    let backup: {
+      version: number;
+      app: string;
+      address: string;
+      encrypted: string;
+      iv: string;
+      salt: string;
+      iterations: number;
+      digest: string;
+    };
+
+    try {
+      backup = JSON.parse(backupJson);
+    } catch {
+      throw new Error('Invalid backup file — could not parse JSON');
+    }
+
+    if (backup.app !== 'PrismTx' || backup.version !== 1) {
+      throw new Error('Not a valid PrismTx backup file');
+    }
+
+    const fromB64 = (s: string) =>
+      Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+    const subtle = globalThis.crypto.subtle;
+
+    const keyMaterial = await subtle.importKey(
+      'raw',
+      new TextEncoder().encode(backupPassphrase),
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+    const aesKey = await subtle.deriveKey(
+      {
+        name:       'PBKDF2',
+        salt:       fromB64(backup.salt),
+        iterations: backup.iterations,
+        hash:       backup.digest as 'SHA-256',
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
+
+    let accountData: MPCAccountData;
+    try {
+      const plaintext = await subtle.decrypt(
+        { name: 'AES-GCM', iv: fromB64(backup.iv) },
+        aesKey,
+        fromB64(backup.encrypted)
+      );
+      accountData = JSON.parse(new TextDecoder().decode(plaintext));
+    } catch {
+      throw new Error('Incorrect passphrase or corrupted backup file');
+    }
+
+    await this.addMPCAccount(accountData);
+    return accountData.address;
+  };
+
+  /**
+   * Compute the keccak256 hash of the unsigned transaction identified by
+   * signingTxId. Returns the hash (0x-prefixed hex) for the MPC signing
+   * protocol to sign, along with the chain ID.
+   *
+   * Must be called from the approval popup context before running BLE signing.
+   */
+  getMPCTxSignHash = async (
+    signingTxId: string
+  ): Promise<{ msgHashHex: string; chainId: number }> => {
+    const { TransactionFactory } = await import('@ethereumjs/tx');
+    const { Common, Hardfork } = await import('@ethereumjs/common');
+
+    const signingTx = transactionHistoryService.getSigningTx(signingTxId);
+    if (!signingTx?.rawTx) {
+      throw new Error(`MPC: signing transaction ${signingTxId} not found`);
+    }
+
+    const rawTx = signingTx.rawTx;
+    const chainId = rawTx.chainId;
+
+    const common = Common.custom(
+      { chainId },
+      { hardfork: Hardfork.London }
+    );
+
+    const is1559 = rawTx.maxFeePerGas !== undefined;
+    const txData: Record<string, any> = {
+      chainId,
+      nonce: rawTx.nonce,
+      to: rawTx.to,
+      value: rawTx.value || '0x0',
+      data: rawTx.data || '0x',
+      gasLimit: rawTx.gas || rawTx.gasLimit,
+    };
+
+    if (is1559) {
+      txData.type = '0x2';
+      txData.maxFeePerGas = rawTx.maxFeePerGas;
+      txData.maxPriorityFeePerGas = rawTx.maxPriorityFeePerGas;
+    } else {
+      txData.gasPrice = rawTx.gasPrice;
+    }
+
+    const tx = TransactionFactory.fromTxData(txData, { common });
+    const msgHashBytes = tx.getHashedMessageToSign();
+    const msgHashHex = addHexPrefix(
+      Buffer.from(msgHashBytes).toString('hex')
+    );
+
+    return { msgHashHex, chainId };
+  };
+
+  /**
+   * Assemble the fully signed transaction from the stored rawTx + MPC
+   * signature components, serialize it, and broadcast via
+   * eth_sendRawTransaction.
+   *
+   * The `v` value in `sig` must be 27 or 28 (Ethereum convention) as
+   * returned by runSignP1 from tssCoordinator.
+   *
+   * Returns the broadcast transaction hash.
+   */
+  completeMPCSigning = async (
+    signingTxId: string,
+    sig: { r: string; s: string; v: number }
+  ): Promise<string> => {
+    const { TransactionFactory } = await import('@ethereumjs/tx');
+    const { Common, Hardfork } = await import('@ethereumjs/common');
+
+    const signingTx = transactionHistoryService.getSigningTx(signingTxId);
+    if (!signingTx?.rawTx) {
+      throw new Error(`MPC: signing transaction ${signingTxId} not found`);
+    }
+
+    const rawTx = signingTx.rawTx;
+    const chainId = rawTx.chainId;
+
+    // Normalize v: TSS coordinator returns 27/28; EIP-1559 needs 0/1,
+    // legacy EIP-155 needs chainId * 2 + 35 + recoveryParam.
+    const recoveryParam = sig.v < 27 ? sig.v : sig.v - 27;
+
+    const common = Common.custom(
+      { chainId },
+      { hardfork: Hardfork.London }
+    );
+
+    const is1559 = rawTx.maxFeePerGas !== undefined;
+    const txData: Record<string, any> = {
+      chainId,
+      nonce: rawTx.nonce,
+      to: rawTx.to,
+      value: rawTx.value || '0x0',
+      data: rawTx.data || '0x',
+      gasLimit: rawTx.gas || rawTx.gasLimit,
+      r: sig.r,
+      s: sig.s,
+    };
+
+    if (is1559) {
+      txData.type = '0x2';
+      txData.maxFeePerGas = rawTx.maxFeePerGas;
+      txData.maxPriorityFeePerGas = rawTx.maxPriorityFeePerGas;
+      txData.v = addHexPrefix(recoveryParam.toString(16));
+    } else {
+      txData.gasPrice = rawTx.gasPrice;
+      // EIP-155 v: chainId * 2 + 35 + recoveryParam
+      txData.v = addHexPrefix(
+        (chainId * 2 + 35 + recoveryParam).toString(16)
+      );
+    }
+
+    const signedTx = TransactionFactory.fromTxData(txData, { common });
+    const serialized = addHexPrefix(
+      Buffer.from(signedTx.serialize()).toString('hex')
+    );
+
+    const txHash = await this.requestETHRpc(
+      { method: 'eth_sendRawTransaction', params: [serialized] },
+      String(chainId)
+    );
+
+    return txHash as string;
+  };
+
+  /**
+   * Compute the EIP-191 personal message hash (the 32-byte value that must be
+   * signed for eth_sign / personal_sign).
+   *
+   * Input `data` is the raw message as a 0x-prefixed hex string.
+   * Returns the hash as a 0x-prefixed hex string.
+   */
+  getMPCPersonalMessageSignHash = async (data: string): Promise<string> => {
+    const { hashPersonalMessage } = await import('@ethereumjs/util');
+    const msgBuffer = Buffer.from(stripHexPrefix(data), 'hex');
+    const hash = hashPersonalMessage(msgBuffer);
+    return addHexPrefix(Buffer.from(hash).toString('hex'));
+  };
+
+  /**
+   * Compute the EIP-712 typed-data hash for MPC signing.
+   *
+   * `typedDataJson` must be a JSON string of the typed-data object (V3/V4) or
+   * a JSON-serialised TypedDataV1Field array (V1).
+   * Returns the 32-byte hash as a 0x-prefixed hex string.
+   */
+  getMPCTypedDataSignHash = async (
+    typedDataJson: string,
+    version: string
+  ): Promise<string> => {
+    const {
+      TypedDataUtils,
+      typedSignatureHash,
+      SignTypedDataVersion,
+    } = await import('@metamask/eth-sig-util');
+
+    const parsed = JSON.parse(typedDataJson);
+
+    if (version === 'V1') {
+      return typedSignatureHash(parsed);
+    }
+
+    const ver =
+      version === 'V3' ? SignTypedDataVersion.V3 : SignTypedDataVersion.V4;
+    const hash = TypedDataUtils.eip712Hash(parsed, ver);
+    return addHexPrefix(Buffer.from(hash).toString('hex'));
   };
 
   setRateGuideLastExposure: typeof preferenceService.setRateGuideLastExposure = async (

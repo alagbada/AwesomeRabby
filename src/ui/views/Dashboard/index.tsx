@@ -19,6 +19,7 @@ import { useCurrentAccount } from '@/ui/hooks/backgroundState/useAccount';
 import { GasPriceBar } from './components/GasPriceBar';
 import { CHAINS_ENUM, KEYRING_CLASS } from '@/constant';
 import Settings from './components/Settings';
+import { AIAssistant } from './components/AIAssistant';
 import { useMemoizedFn, useMount } from 'ahooks';
 import { useEnterPassphraseModal } from '@/ui/hooks/useEnterPassphraseModal';
 import { useGasAccountDiscovery } from '@/ui/views/GasAccount/hooks';
@@ -211,6 +212,8 @@ const Dashboard = () => {
           setAutoScrollToBiometric(false);
         }}
       />
+
+      <AIAssistant />
     </>
   );
 };

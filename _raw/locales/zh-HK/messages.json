@@ -560,6 +560,7 @@
         "description": "不支持導入多個基於二維碼的硬件錢包。\n請先刪除 {{0}} 中的所有地址，然後再導入新的設備"
       },
       "connectHardwareWallets": "連接硬件錢包",
+      "connectMPCWallet": "?? MPC ??",
       "connectMobileWalletApps": "連接手機錢包",
       "connectInstitutionalWallets": "連接機構錢包",
       "createNewSeedPhrase": "創建新的助記詞",
@@ -2137,7 +2138,20 @@
         "check1": "我明白删除这个地址也会移除它的 Private Key。Rabby 不能为我恢复它们。",
         "check2": "我確認我已經備份了我的 Private Key 或 Seed Phrase，並且我已準備好刪除它。"
       },
-      "notBackup": "未備份"
+      "notBackup": "未備份",
+      "exportMPCKeyShare": "匯出金鑰份額備份",
+      "exportMPCModal": {
+        "title": "設定備份密碼短語",
+        "desc": "此密碼短語用於加密您的金鑰份額檔案。請將其與檔案分開保存——兩者同時擁有即可恢復您的錢包。",
+        "passphraseLabel": "備份密碼短語",
+        "passphrasePlaceholder": "請輸入強密碼短語",
+        "confirmLabel": "確認密碼短語",
+        "confirmPlaceholder": "再次輸入密碼短語",
+        "download": "下載備份",
+        "passphraseRequired": "請輸入密碼短語",
+        "passphraseMismatch": "兩次密碼短語不一致",
+        "success": "備份檔案已下載"
+      }
     },
     "preferMetamaskDapps": {
       "title": "優先使用MetaMask連接的Dapp",
@@ -2932,7 +2946,35 @@
       },
       "importWalletType": {
         "hardwareWallet": "硬件钱包",
-        "seedOrKey": "助记词或私钥"
+        "seedOrKey": "助记词或私钥",
+        "mpcWallet": "MPC 錢包 (PrismTx)",
+        "mpcWalletDesc": "從 .json 備份檔案恢復"
+      },
+      "createWalletType": {
+        "title": "創建新錢包",
+        "mpcWallet": "MPC 錢包",
+        "mpcWalletDesc": "2-of-2 安全保障 — 每筆交易都需要您的手機確認",
+        "seedPhraseWallet": "助記詞",
+        "seedPhraseWalletDesc": "標準 12 詞助記詞錢包"
+      },
+      "importMPCRestore": {
+        "title": "恢復 MPC 錢包",
+        "subtitle": "上傳您從之前 PrismTx 安裝中匯出的備份檔案。",
+        "fileLabel": "備份檔案（.json）",
+        "filePlaceholder": "點擊選擇備份檔案…",
+        "browse": "瀏覽",
+        "passphraseLabel": "備份密碼短語",
+        "passphrasePlaceholder": "匯出時設定的密碼短語",
+        "passwordLabel": "設定錢包密碼",
+        "passwordPlaceholder": "至少 8 個字元",
+        "passwordConfirmPlaceholder": "確認錢包密碼",
+        "restoreButton": "恢復錢包",
+        "errorNoFile": "請選擇備份檔案",
+        "errorNoPassphrase": "請輸入備份密碼短語",
+        "errorNoPassword": "請設定錢包密碼",
+        "errorPasswordMismatch": "兩次密碼不一致",
+        "errorPasswordTooShort": "密碼至少 8 個字元",
+        "errorGeneric": "恢復失敗——請檢查您的檔案和密碼短語"
       }
     },
     "metamaskModeDapps": {

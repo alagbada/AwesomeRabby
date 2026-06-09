@@ -279,6 +279,7 @@ export const KEYRING_TYPE = {
   GnosisKeyring: 'Gnosis',
   CoboArgusKeyring: 'CoboArgus',
   CoinbaseKeyring: 'Coinbase',
+  MPCKeyring: 'MPC Key',
   /**
    * just for type, not a real keyring type
    */
@@ -309,6 +310,10 @@ export const KEYRING_CLASS = {
   GNOSIS: 'Gnosis',
   CoboArgus: 'CoboArgus',
   Coinbase: 'Coinbase',
+  /**
+   * PrismTx MPC keyring — 2-of-2 threshold ECDSA via BLE companion app
+   */
+  MPC: 'MPC Key',
   /**
    * just for type, not a real keyring type
    */
@@ -351,6 +356,7 @@ export const KEYRING_TYPE_TEXT = {
   [KEYRING_CLASS.HARDWARE.KEYSTONE]: 'Imported by QRCode Base',
   [KEYRING_CLASS.HARDWARE.NGRAVEZERO]: 'Imported by QRCode Base',
   [KEYRING_CLASS.HARDWARE.IMKEY]: 'Imported by imKey',
+  [KEYRING_CLASS.MPC]: 'PrismTx MPC Wallet',
 };
 
 export const HARDWARE_KEYRING_TYPES = {
@@ -528,6 +534,14 @@ export const INTERNAL_REQUEST_SESSION = {
 export const INITIAL_OPENAPI_URL = 'https://api.rabby.io';
 
 export const INITIAL_TESTNET_OPENAPI_URL = 'https://api.testnet.rabby.io';
+
+/**
+ * AwesomeRabby self-hosted API.
+ * Change to your VPS domain before building for production.
+ * Overridable at runtime via chrome.storage.local key "awesome_api_url".
+ */
+export const AWESOME_API_URL =
+  process.env.AWESOME_API_URL ?? 'http://localhost:3000';
 
 export const EVENTS = {
   BRIDGE_HISTORY_UPDATED: 'BRIDGE_HISTORY_UPDATED',
@@ -1483,6 +1497,7 @@ export const BRAND_ALIAN_TYPE_TEXT = {
   [WALLET_BRAND_TYPES.ONEKEY]: 'Onekey QR',
   [KEYRING_CLASS.HARDWARE.BITBOX02]: 'BitBox02',
   [KEYRING_CLASS.GNOSIS]: 'Safe',
+  [KEYRING_CLASS.CoboArgus]: 'CoboArgus',
   [KEYRING_CLASS.HARDWARE.GRIDPLUS]: 'GridPlus',
   [KEYRING_CLASS.HARDWARE.KEYSTONE]: 'Keystone',
   [KEYRING_CLASS.HARDWARE.NGRAVEZERO]: 'NGRAVE ZERO',
@@ -1493,6 +1508,7 @@ export const BRAND_ALIAN_TYPE_TEXT = {
   [WALLET_BRAND_TYPES.TRUSTWALLET]: WALLET_BRAND_CONTENT.TRUSTWALLET.name,
   [KEYRING_CLASS.Coinbase]: WALLET_BRAND_CONTENT.Coinbase.name,
   [KEYRING_CLASS.HARDWARE.IMKEY]: 'imKey',
+  [KEYRING_CLASS.MPC]: 'MPC Wallet',
 };
 
 export const COBO_ARGUS_SUPPORT_CHAINS = ensureChainListValid([

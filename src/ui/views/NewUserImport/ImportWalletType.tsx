@@ -10,6 +10,7 @@ import IconOKX from '@/ui/assets/new-user-import/wallet/okx.svg';
 import IconPhantom from '@/ui/assets/new-user-import/wallet/phantom.svg';
 import { Item } from '@/ui/component';
 import { Card } from '@/ui/component/NewUserImport';
+import { RcAddAddressOptionMPCIcon } from '@/ui/assets/add-address';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router-dom';
@@ -152,6 +153,27 @@ export const ImportWalletType = () => {
                   />
                 );
               })}
+            </div>
+          </div>
+        </Item>
+
+        {/* MPC Wallet option — restore from backup */}
+        <Item
+          bgColor="var(--r-neutral-card2, #F2F4F7)"
+          px={16}
+          py={20}
+          onClick={() => {
+            history.push('/new-user/import/mpc-restore');
+          }}
+          className="pl-[18px] rounded-[8px] text-[20px] leading-[24px] py-[21px] font-medium text-r-neutral-title1"
+        >
+          <div className="space-y-[12px]">
+            <div>{t('page.newUserImport.importWalletType.mpcWallet')}</div>
+            <div className="flex items-center gap-[8px]">
+              <RcAddAddressOptionMPCIcon className="w-[20px] h-[20px]" />
+              <span className="text-[13px] font-normal text-r-neutral-foot">
+                {t('page.newUserImport.importWalletType.mpcWalletDesc')}
+              </span>
             </div>
           </div>
         </Item>

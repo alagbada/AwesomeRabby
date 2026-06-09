@@ -14,7 +14,7 @@ export const Guide = () => {
   const history = useHistory();
 
   const gotoCreate = React.useCallback(() => {
-    history.push('/new-user/create-seed-phrase');
+    history.push('/new-user/create-wallet-password');
   }, []);
 
   const gotoImport = React.useCallback(() => {

@@ -5,6 +5,7 @@ export { default as preferenceService } from './preference';
 export { default as currencyService } from './currency';
 export { default as sessionService } from './session';
 export { default as openapiService } from './openapi';
+export { default as awesomeApiService } from './awesomeApi';
 export { default as transactionWatchService } from './transactionWatcher';
 export { default as pageStateCacheService } from './pageStateCache';
 export { default as transactionHistoryService } from './transactionHistory';

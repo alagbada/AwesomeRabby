@@ -1602,6 +1602,7 @@
         "description": "Імпорт декількох апаратних гаманців на основі QR не підтримується. Будь ласка, видаліть усі адреси з {{0}} перед імпортом іншого пристрою."
       },
       "connectHardwareWallets": "Підключити апаратні гаманці",
+      "connectMPCWallet": "Connect MPC Wallet",
       "connectMobileWalletApps": "Підключити додатки мобільних гаманців",
       "connectInstitutionalWallets": "Підключити інституційні гаманці",
       "createNewSeedPhrase": "Створити нову ключову фразу",
@@ -2109,7 +2110,20 @@
         "sub-title": "Ця дія є постійною. Будь ласка, ознайомтеся з наступним, щоб захистити свої активи:",
         "check2": "Я підтверджую, що я зробив резервну копію свого ключа (Private Key) або фрази для відновлення (Seed Phrase) і готовий її видалити."
       },
-      "notBackup": "Не резервна копія"
+      "notBackup": "Не резервна копія",
+      "exportMPCKeyShare": "Export Key Share Backup",
+      "exportMPCModal": {
+        "title": "Set Backup Passphrase",
+        "desc": "This passphrase encrypts your key share file. Store it separately from the file — anyone with both can restore your wallet.",
+        "passphraseLabel": "Backup passphrase",
+        "passphrasePlaceholder": "Enter a strong passphrase",
+        "confirmLabel": "Confirm passphrase",
+        "confirmPlaceholder": "Re-enter passphrase",
+        "download": "Download Backup",
+        "passphraseRequired": "Please enter a passphrase",
+        "passphraseMismatch": "Passphrases do not match",
+        "success": "Backup file downloaded"
+      }
     },
     "preferMetamaskDapps": {
       "title": "Додатки які використовуются лише з Metamask",
@@ -2904,7 +2918,35 @@
       },
       "importWalletType": {
         "hardwareWallet": "Апаратний гаманець",
-        "seedOrKey": "Сід-фраза або приватний ключ"
+        "seedOrKey": "Сід-фраза або приватний ключ",
+        "mpcWallet": "MPC Wallet (PrismTx)",
+        "mpcWalletDesc": "Restore from a .json backup file"
+      },
+      "createWalletType": {
+        "title": "Create New Wallet",
+        "mpcWallet": "MPC Wallet",
+        "mpcWalletDesc": "2-of-2 security — every transaction requires your phone",
+        "seedPhraseWallet": "Seed Phrase",
+        "seedPhraseWalletDesc": "Standard 12-word recovery phrase wallet"
+      },
+      "importMPCRestore": {
+        "title": "Restore MPC Wallet",
+        "subtitle": "Upload the backup file you exported from a previous PrismTx installation.",
+        "fileLabel": "Backup file (.json)",
+        "filePlaceholder": "Click to select backup file…",
+        "browse": "Browse",
+        "passphraseLabel": "Backup passphrase",
+        "passphrasePlaceholder": "Passphrase set at export time",
+        "passwordLabel": "Set wallet password",
+        "passwordPlaceholder": "At least 8 characters",
+        "passwordConfirmPlaceholder": "Confirm wallet password",
+        "restoreButton": "Restore Wallet",
+        "errorNoFile": "Please select a backup file",
+        "errorNoPassphrase": "Please enter the backup passphrase",
+        "errorNoPassword": "Please set a wallet password",
+        "errorPasswordMismatch": "Passwords do not match",
+        "errorPasswordTooShort": "Password must be at least 8 characters",
+        "errorGeneric": "Failed to restore wallet — check your file and passphrase"
       }
     },
     "metamaskModeDapps": {

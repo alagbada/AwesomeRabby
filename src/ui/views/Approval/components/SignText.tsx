@@ -248,6 +248,9 @@ const SignText = ({
         extra: {
           brandName: currentAccount.brandName,
           signTextMethod: 'personalSign',
+          // Raw hex message forwarded so MPC waiting component can hash it
+          // without needing to re-fetch from the background.
+          mpcRawMessage: data?.[0],
         },
       });
 

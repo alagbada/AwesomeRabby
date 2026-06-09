@@ -506,6 +506,18 @@ const SignTypedData = ({
       currentAccount?.type &&
       WaitingSignMessageComponent[currentAccount?.type]
     ) {
+      const isMPC = currentAccount.type === KEYRING_CLASS.MPC;
+      const mpcSignVersion = params.method.endsWith('_v3')
+        ? 'V3'
+        : params.method.endsWith('_v1') || params.method === 'eth_signTypedData'
+        ? 'V1'
+        : 'V4';
+      const mpcTypedData = isMPC
+        ? mpcSignVersion === 'V1'
+          ? JSON.stringify(params.data[0])
+          : (params.data[1] as string)
+        : undefined;
+
       resolveApproval({
         uiRequestComponent: WaitingSignMessageComponent[currentAccount?.type],
         $account: currentAccount,
@@ -514,6 +526,10 @@ const SignTypedData = ({
         extra: {
           brandName: currentAccount.brandName,
           signTextMethod: underline2Camelcase(params.method),
+          ...(isMPC && {
+            mpcTypedData,
+            mpcSignVersion,
+          }),
         },
       });
 

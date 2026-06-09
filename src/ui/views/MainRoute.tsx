@@ -72,6 +72,11 @@ import { GnosisQueue } from './GnosisQueue';
 import Perps from './Perps/screen/home';
 import { Guide } from './NewUserImport/Guide';
 import { CreateSeedPhrase } from './NewUserImport/CreateSeedPhrase';
+import { CreateWalletType } from './NewUserImport/CreateWalletType';
+import { CreateWalletPassword } from './NewUserImport/CreateWalletPassword';
+import { CreateSeedPhraseBooted } from './NewUserImport/CreateSeedPhraseBooted';
+import { CreateMPCWallet } from './NewUserImport/CreateMPCWallet';
+import { ImportMPCRestore } from './NewUserImport/ImportMPCRestore';
 import { NewUserSetPassword } from './NewUserImport/SetPassword';
 import { NewUserImportGnosisAddress } from './NewUserImport/ImportGnosisAddress';
 import { NewUserImportLedger } from './NewUserImport/ImportLedger';
@@ -91,6 +96,7 @@ import { NewUserSelectAddress } from './NewUserImport/SelectAddress';
 import { ga4 } from '@/utils/ga4';
 import { ConnectApproval } from './Approval/components/Connect/SelectWalletApproval';
 import { SyncToMobile } from '../utils/SyncToMobile/SyncToMobile';
+import MPCPairing from './MPCPairing';
 import dayjs from 'dayjs';
 import { PreferenceStore } from '@/background/service/preference';
 import WhitelistInput from './WhitelistInput';
@@ -215,12 +221,20 @@ const Main = () => {
           <SyncToMobile />
         </Route>
 
+        <Route exact path="/mpc-pairing">
+          <MPCPairing />
+        </Route>
+
         <Route exact path="/new-user/guide">
           <Guide />
         </Route>
 
         <Route exact path="/new-user/import-wallet-type">
           <ImportWalletType />
+        </Route>
+
+        <Route exact path="/new-user/import/mpc-restore">
+          <ImportMPCRestore />
         </Route>
 
         <Route exact path="/new-user/import-hardware-list">
@@ -269,6 +283,26 @@ const Main = () => {
 
         <Route exact path="/new-user/import/:type/set-password">
           <NewUserSetPassword />
+        </Route>
+
+        {/* Step 1 of "Create" flow — set password (shared for all wallet types) */}
+        <Route exact path="/new-user/create-wallet-password">
+          <CreateWalletPassword />
+        </Route>
+
+        {/* Step 2 — choose wallet type (wallet already booted) */}
+        <Route exact path="/new-user/create-wallet-type">
+          <CreateWalletType />
+        </Route>
+
+        {/* Step 3a — seed phrase wallet: generate & create keyring (already booted) */}
+        <Route exact path="/new-user/create-seed-phrase-booted">
+          <CreateSeedPhraseBooted />
+        </Route>
+
+        {/* Legacy / direct entry — still works on its own */}
+        <Route exact path="/new-user/create-mpc-wallet">
+          <CreateMPCWallet />
         </Route>
 
         <Route exact path="/new-user/create-seed-phrase">

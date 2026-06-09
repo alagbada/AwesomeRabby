@@ -15,6 +15,7 @@ import {
   RcAddAddressOptionPrivateKeyIcon,
   RcAddAddressOptionHardwareIcon,
   RcAddAddressOptionWatchIcon,
+  RcAddAddressOptionMPCIcon,
 } from '@/ui/assets/add-address';
 import { UseSeedPhrase } from '@/ui/views/AddFromCurrentSeedPhrase/hooks';
 import { message } from 'antd';
@@ -173,6 +174,18 @@ const AddAddressOptions: React.FC<{
             onNavigate?.('hardware-wallets');
           } else {
             history.push('/add-address/hardware-wallets');
+          }
+        },
+      },
+      {
+        key: 'connect-mpc-wallet',
+        label: t('page.newAddress.connectMPCWallet'),
+        icon: <RcAddAddressOptionMPCIcon />,
+        onClick: () => {
+          if (UI_TYPE.isDesktop) {
+            onNavigate?.('mpc-pairing');
+          } else {
+            history.push('/mpc-pairing');
           }
         },
       },

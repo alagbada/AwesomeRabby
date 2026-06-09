@@ -3,6 +3,7 @@ export { ReactComponent as RcAddAddressOptionSeedPhraseIcon } from './option-see
 export { ReactComponent as RcAddAddressOptionPrivateKeyIcon } from './option-private-key.svg';
 export { ReactComponent as RcAddAddressOptionHardwareIcon } from './option-hardware-wallet.svg';
 export { ReactComponent as RcAddAddressOptionWatchIcon } from './option-watch-address.svg';
+export { ReactComponent as RcAddAddressOptionMPCIcon } from './option-mpc-wallet.svg';
 
 export { ReactComponent as RcAddNewAddressChevronIcon } from './new-address-chevron.svg';
 export { ReactComponent as RcAddNewAddressCreateSeedIcon } from './new-address-create-seed.svg';

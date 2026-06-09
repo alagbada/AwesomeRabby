@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import AuthenticationModalPromise from 'ui/component/AuthenticationModal';
 import { useWallet } from 'ui/utils';
 import './style.less';
 import { ReactComponent as IconArrowRight } from 'ui/assets/arrow-right-gray.svg';
 import { useForm } from 'antd/lib/form/Form';
 import { useHistory } from 'react-router-dom';
-import { KEYRING_TYPE } from '@/constant';
+import { KEYRING_CLASS, KEYRING_TYPE } from '@/constant';
 import { useTranslation } from 'react-i18next';
 import { useEnterPassphraseModal } from '@/ui/hooks/useEnterPassphraseModal';
 import { usePopupContainer } from '@/ui/hooks/usePopupContainer';
@@ -14,6 +14,130 @@ import { obj2query } from '@/ui/utils/url';
 import { useCheckSeedPhraseBackup } from '@/ui/utils/useCheckSeedPhraseBackup';
 import clsx from 'clsx';
 import { ReactComponent as RcIconInfoCC } from '@/ui/assets/dashboard/warning-cc.svg';
+import { Input, Modal, message as antdMessage } from 'antd';
+
+// ─── MPC key-share export section ────────────────────────────────────────────
+
+const MPCBackupSection: React.FC<{ address: string }> = ({ address }) => {
+  const { t } = useTranslation();
+  const wallet = useWallet();
+  const { getContainer } = usePopupContainer();
+
+  // Passphrase modal state
+  const [modalOpen,  setModalOpen]  = useState(false);
+  const [passphrase, setPassphrase] = useState('');
+  const [confirm,    setConfirm]    = useState('');
+  const [exporting,  setExporting]  = useState(false);
+  const passphraseRef = useRef<string>('');
+
+  const triggerDownload = (json: string) => {
+    const blob = new Blob([json], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const tag  = document.createElement('a');
+    tag.href     = url;
+    tag.download = `prismtx-backup-${address.slice(2, 8).toLowerCase()}.json`;
+    document.body.appendChild(tag);
+    tag.click();
+    document.body.removeChild(tag);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async () => {
+    await AuthenticationModalPromise({
+      confirmText:       t('global.confirm'),
+      cancelText:        t('global.Cancel'),
+      title:             t('page.addressDetail.exportMPCKeyShare'),
+      validationHandler: async (_password: string) => {
+        // password verified — open passphrase modal next
+      },
+      onFinished() {
+        setPassphrase('');
+        setConfirm('');
+        setModalOpen(true);
+      },
+      onCancel() { /* noop */ },
+      getContainer,
+      wallet,
+    });
+  };
+
+  const handleDownload = async () => {
+    if (!passphrase) {
+      antdMessage.error(t('page.addressDetail.exportMPCModal.passphraseRequired'));
+      return;
+    }
+    if (passphrase !== confirm) {
+      antdMessage.error(t('page.addressDetail.exportMPCModal.passphraseMismatch'));
+      return;
+    }
+    setExporting(true);
+    try {
+      const json = await wallet.exportMPCKeyShare(address, passphrase);
+      triggerDownload(json);
+      setModalOpen(false);
+      antdMessage.success(t('page.addressDetail.exportMPCModal.success'));
+    } catch (e: any) {
+      antdMessage.error(e?.message ?? 'Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="rabby-list">
+        <div className="rabby-list-item cursor-pointer" onClick={handleExport}>
+          <div className="rabby-list-item-content">
+            <div className="rabby-list-item-label">
+              {t('page.addressDetail.exportMPCKeyShare')}
+            </div>
+            <div className="rabby-list-item-arrow">
+              <IconArrowRight width={16} height={16} viewBox="0 0 12 12" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Modal
+        open={modalOpen}
+        title={t('page.addressDetail.exportMPCModal.title')}
+        okText={t('page.addressDetail.exportMPCModal.download')}
+        cancelText={t('global.Cancel')}
+        confirmLoading={exporting}
+        onOk={handleDownload}
+        onCancel={() => setModalOpen(false)}
+        className="modal-support-darkmode"
+      >
+        <p className="text-[13px] text-r-neutral-foot mb-[16px]">
+          {t('page.addressDetail.exportMPCModal.desc')}
+        </p>
+        <div className="mb-[12px]">
+          <div className="text-[12px] text-r-neutral-foot mb-[6px]">
+            {t('page.addressDetail.exportMPCModal.passphraseLabel')}
+          </div>
+          <Input.Password
+            value={passphrase}
+            onChange={(e) => setPassphrase(e.target.value)}
+            placeholder={t('page.addressDetail.exportMPCModal.passphrasePlaceholder')}
+          />
+        </div>
+        <div>
+          <div className="text-[12px] text-r-neutral-foot mb-[6px]">
+            {t('page.addressDetail.exportMPCModal.confirmLabel')}
+          </div>
+          <Input.Password
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            placeholder={t('page.addressDetail.exportMPCModal.confirmPlaceholder')}
+            onPressEnter={handleDownload}
+          />
+        </div>
+      </Modal>
+    </>
+  );
+};
+
+// ─── Main AddressBackup component ────────────────────────────────────────────
 
 type Props = {
   address: string;
@@ -27,6 +151,10 @@ export const AddressBackup = ({ address, type }: Props) => {
   const { getContainer } = usePopupContainer();
 
   const [form] = useForm();
+
+  if ((type as string) === KEYRING_CLASS.MPC) {
+    return <MPCBackupSection address={address} />;
+  }
 
   if (
     ![KEYRING_TYPE.HdKeyring, KEYRING_TYPE.SimpleKeyring].includes(type as any)
