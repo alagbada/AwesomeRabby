@@ -30,10 +30,10 @@
 
 // ─── GATT UUIDs ──────────────────────────────────────────────────────────────
 
-export const PRISMTX_SERVICE_UUID  = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
-export const COMM_WRITE_UUID       = 'f47ac10b-58cc-4372-a567-0e02b2c3d480';
-export const COMM_NOTIFY_UUID      = 'f47ac10b-58cc-4372-a567-0e02b2c3d481';
-export const STATUS_UUID           = 'f47ac10b-58cc-4372-a567-0e02b2c3d482';
+export const PRISMTX_SERVICE_UUID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+export const COMM_WRITE_UUID = 'f47ac10b-58cc-4372-a567-0e02b2c3d480';
+export const COMM_NOTIFY_UUID = 'f47ac10b-58cc-4372-a567-0e02b2c3d481';
+export const STATUS_UUID = 'f47ac10b-58cc-4372-a567-0e02b2c3d482';
 
 // ─── Chunking ────────────────────────────────────────────────────────────────
 
@@ -62,6 +62,7 @@ export enum BLEMessageType {
   KEYGEN_DONE = 'keygen_done',
 
   // Signing rounds — P1 → P2
+  SIGN_INIT = 'sign_init',
   SIGN_R1 = 'sign_r1',
   SIGN_R3 = 'sign_r3',
 
@@ -75,11 +76,11 @@ export enum BLEMessageType {
  * These are plain UTF-8 strings (not JSON) for minimal overhead.
  */
 export enum PhoneStatus {
-  READY     = 'ready',      // App is open and waiting for a request
-  APPROVED  = 'approved',   // User tapped Approve + passed biometric
-  REJECTED  = 'rejected',   // User tapped Reject
-  BUSY      = 'busy',       // Another signing session is already active
-  ERROR     = 'error',      // Something went wrong on the phone
+  READY = 'ready', // App is open and waiting for a request
+  APPROVED = 'approved', // User tapped Approve + passed biometric
+  REJECTED = 'rejected', // User tapped Reject
+  BUSY = 'busy', // Another signing session is already active
+  ERROR = 'error', // Something went wrong on the phone
 }
 
 // ─── Payload shape ───────────────────────────────────────────────────────────
@@ -97,18 +98,27 @@ export interface BLEPayload {
    * and reject stale or replayed packets.
    */
   sessionId: string;
-  /** Base64-encoded raw bytes from the TSS library (Uint8Array) */
+  /** Message-specific data. TSS rounds use base64-encoded raw bytes. */
   data: string;
+}
+
+export interface SignInitPayload {
+  /** 32-byte hash the phone will ask the user to approve */
+  msgHashHex: string;
+  /** Human-readable context displayed on the phone */
+  description: string;
+  /** Approval category, e.g. SignTx, SignText, SignTypedData */
+  approvalType: string;
 }
 
 // ─── BLE connection status (for UI feedback) ─────────────────────────────────
 
 export enum BLEStatus {
-  IDLE         = 'idle',         // Not started
-  SCANNING     = 'scanning',     // watchAdvertisements() running, phone not yet seen
-  CONNECTING   = 'connecting',   // gatt.connect() in progress
-  CONNECTED    = 'connected',    // GATT connection established, ready to communicate
+  IDLE = 'idle', // Not started
+  SCANNING = 'scanning', // watchAdvertisements() running, phone not yet seen
+  CONNECTING = 'connecting', // gatt.connect() in progress
+  CONNECTED = 'connected', // GATT connection established, ready to communicate
   DISCONNECTED = 'disconnected', // Connection was lost or cleanly closed
-  TIMEOUT      = 'timeout',      // Phone did not open app within the allowed window
-  ERROR        = 'error',        // Unrecoverable BLE error
+  TIMEOUT = 'timeout', // Phone did not open app within the allowed window
+  ERROR = 'error', // Unrecoverable BLE error
 }

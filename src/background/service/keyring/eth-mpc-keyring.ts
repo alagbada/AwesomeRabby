@@ -87,7 +87,11 @@ class MPCKeyring extends EventEmitter {
   addAccount(data: MPCAccountData): void {
     const checksummed = toChecksumAddress(addHexPrefix(data.address));
 
-    if (this.accounts.find((a) => a.address.toLowerCase() === checksummed.toLowerCase())) {
+    if (
+      this.accounts.find(
+        (a) => a.address.toLowerCase() === checksummed.toLowerCase()
+      )
+    ) {
       throw new Error(`MPC account ${checksummed} already exists`);
     }
 
@@ -144,7 +148,11 @@ class MPCKeyring extends EventEmitter {
   /**
    * Updates the paired device ID (e.g. after re-pairing with a new phone).
    */
-  updatePairedDevice(address: string, newDeviceId: string, newSessionKeyB64: string): void {
+  updatePairedDevice(
+    address: string,
+    newDeviceId: string,
+    newSessionKeyB64: string
+  ): void {
     const account = this._findAccount(address);
     account.pairedDeviceId = newDeviceId;
     account.sessionKeyB64 = newSessionKeyB64;
@@ -166,21 +174,21 @@ class MPCKeyring extends EventEmitter {
   async signTransaction(): Promise<never> {
     throw new Error(
       'MPCKeyring: use the MPC signing flow in the approval popup — ' +
-      'direct signTransaction is not supported.'
+        'direct signTransaction is not supported.'
     );
   }
 
   async signPersonalMessage(): Promise<never> {
     throw new Error(
       'MPCKeyring: use the MPC signing flow in the approval popup — ' +
-      'direct signPersonalMessage is not supported.'
+        'direct signPersonalMessage is not supported.'
     );
   }
 
   async signTypedData(): Promise<never> {
     throw new Error(
       'MPCKeyring: use the MPC signing flow in the approval popup — ' +
-      'direct signTypedData is not supported.'
+        'direct signTypedData is not supported.'
     );
   }
 

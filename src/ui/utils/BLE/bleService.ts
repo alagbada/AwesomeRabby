@@ -40,8 +40,8 @@ export { BLEStatus } from './gattProfile';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type StatusCallback  = (status: BLEStatus) => void;
-type PhoneCallback   = (status: PhoneStatus) => void;
+type StatusCallback = (status: BLEStatus) => void;
+type PhoneCallback = (status: PhoneStatus) => void;
 
 // ─── BLEService ───────────────────────────────────────────────────────────────
 
@@ -144,16 +144,20 @@ export class BLEService {
   async send(payload: BLEPayload): Promise<void> {
     if (!this.writeChar) throw new Error('BLEService: not connected');
 
-    const json      = JSON.stringify(payload);
+    const json = JSON.stringify(payload);
     const plaintext = new TextEncoder().encode(json);
     const encrypted = await this._encrypt(plaintext);
-    const chunks    = this._chunk(encrypted);
+    const chunks = this._chunk(encrypted);
 
-    console.log(`[BLE P1] send  type=${payload.type} chunks=${chunks.length} encBytes=${encrypted.byteLength}`);
+    console.log(
+      `[BLE P1] send  type=${payload.type} chunks=${chunks.length} encBytes=${encrypted.byteLength}`
+    );
     for (const chunk of chunks) {
       await this.writeChar.writeValueWithResponse(chunk);
     }
-    console.log(`[BLE P1] send  type=${payload.type} — all ${chunks.length} chunk(s) written`);
+    console.log(
+      `[BLE P1] send  type=${payload.type} — all ${chunks.length} chunk(s) written`
+    );
   }
 
   /**
@@ -168,7 +172,9 @@ export class BLEService {
     return new Promise<BLEPayload>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.messageWaiters = this.messageWaiters.filter((w) => w !== waiter);
-        reject(new Error('BLEService: receive timeout waiting for phone response'));
+        reject(
+          new Error('BLEService: receive timeout waiting for phone response')
+        );
       }, timeoutMs);
 
       const waiter = (payload: BLEPayload) => {
@@ -197,7 +203,7 @@ export class BLEService {
     } catch {
       // best-effort cleanup
     } finally {
-      this.server    = null;
+      this.server = null;
       this.writeChar = null;
       this.notifyChar = null;
       this.statusChar = null;
@@ -212,12 +218,12 @@ export class BLEService {
     }
 
     const devices = await navigator.bluetooth.getDevices();
-    const device  = devices.find((d) => d.id === this.deviceId);
+    const device = devices.find((d) => d.id === this.deviceId);
 
     if (!device) {
       throw new Error(
         `BLEService: paired device ${this.deviceId} not found. ` +
-        'The user may need to re-pair via Settings → PrismTx Key.'
+          'The user may need to re-pair via Settings → PrismTx Key.'
       );
     }
 
@@ -227,7 +233,7 @@ export class BLEService {
   private async _discoverCharacteristics(): Promise<void> {
     const service = await this.server!.getPrimaryService(PRISMTX_SERVICE_UUID);
 
-    this.writeChar  = await service.getCharacteristic(COMM_WRITE_UUID);
+    this.writeChar = await service.getCharacteristic(COMM_WRITE_UUID);
     this.notifyChar = await service.getCharacteristic(COMM_NOTIFY_UUID);
     this.statusChar = await service.getCharacteristic(STATUS_UUID);
 
@@ -258,12 +264,12 @@ export class BLEService {
     if (packet.length < CHUNK_HEADER_BYTES) return;
 
     const totalChunks = packet[0];
-    const chunkIndex  = packet[1];
-    const fragment    = packet.slice(CHUNK_HEADER_BYTES);
+    const chunkIndex = packet[1];
+    const fragment = packet.slice(CHUNK_HEADER_BYTES);
 
     // First chunk of a new message — reset buffer
     if (chunkIndex === 0) {
-      this.incomingChunks    = new Array(totalChunks);
+      this.incomingChunks = new Array(totalChunks);
       this.expectedChunkCount = totalChunks;
     }
 
@@ -274,15 +280,21 @@ export class BLEService {
 
     // All chunks received — reassemble
     const encrypted = this._concat(this.incomingChunks as Uint8Array[]);
-    this.incomingChunks     = [];
+    this.incomingChunks = [];
     this.expectedChunkCount = 0;
 
-    console.log(`[BLE P1] recv  reassembled ${encrypted.byteLength} encrypted bytes`);
+    console.log(
+      `[BLE P1] recv  reassembled ${encrypted.byteLength} encrypted bytes`
+    );
     try {
       const plaintext = await this._decrypt(encrypted);
-      const json      = new TextDecoder().decode(plaintext);
-      const payload   = JSON.parse(json) as BLEPayload;
-      console.log(`[BLE P1] recv  type=${payload.type} sessionId=${payload.sessionId?.slice(0,8)}`);
+      const json = new TextDecoder().decode(plaintext);
+      const payload = JSON.parse(json) as BLEPayload;
+      console.log(
+        `[BLE P1] recv  type=${
+          payload.type
+        } sessionId=${payload.sessionId?.slice(0, 8)}`
+      );
       this._dispatchMessage(payload);
     } catch (err) {
       console.error('[BLE P1] recv  decrypt/parse FAILED:', err);
@@ -316,11 +328,11 @@ export class BLEService {
     const chunks: Uint8Array[] = [];
 
     for (let i = 0; i < totalChunks; i++) {
-      const start     = i * CHUNK_PAYLOAD_SIZE;
-      const fragment  = data.slice(start, start + CHUNK_PAYLOAD_SIZE);
-      const packet    = new Uint8Array(CHUNK_HEADER_BYTES + fragment.byteLength);
-      packet[0]       = totalChunks;
-      packet[1]       = i;
+      const start = i * CHUNK_PAYLOAD_SIZE;
+      const fragment = data.slice(start, start + CHUNK_PAYLOAD_SIZE);
+      const packet = new Uint8Array(CHUNK_HEADER_BYTES + fragment.byteLength);
+      packet[0] = totalChunks;
+      packet[1] = i;
       packet.set(fragment, CHUNK_HEADER_BYTES);
       chunks.push(packet);
     }
@@ -330,8 +342,8 @@ export class BLEService {
 
   private _concat(arrays: Uint8Array[]): Uint8Array {
     const totalLen = arrays.reduce((n, a) => n + a.byteLength, 0);
-    const result   = new Uint8Array(totalLen);
-    let offset     = 0;
+    const result = new Uint8Array(totalLen);
+    let offset = 0;
     for (const arr of arrays) {
       result.set(arr, offset);
       offset += arr.byteLength;
@@ -347,13 +359,13 @@ export class BLEService {
       'raw',
       raw,
       { name: 'AES-GCM', length: 256 },
-      false,          // not extractable
+      false, // not extractable
       ['encrypt', 'decrypt']
     );
   }
 
   private async _encrypt(plaintext: Uint8Array): Promise<Uint8Array> {
-    const iv         = crypto.getRandomValues(new Uint8Array(12));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
     const ciphertext = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv },
       this.cryptoKey!,
@@ -367,9 +379,9 @@ export class BLEService {
     if (data.byteLength < 12 + 16) {
       throw new Error('BLEService: encrypted payload too short');
     }
-    const iv         = data.slice(0, 12);
+    const iv = data.slice(0, 12);
     const ciphertext = data.slice(12);
-    const plaintext  = await crypto.subtle.decrypt(
+    const plaintext = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv },
       this.cryptoKey!,
       ciphertext
@@ -409,7 +421,7 @@ export async function pairNewDevice(
   // devices advertising the bleFilterUUID (i.e. the user's phone with
   // PrismTx Key open after scanning the QR).
   const device = await navigator.bluetooth.requestDevice({
-    filters:          [{ services: [bleFilterUUID] }],
+    filters: [{ services: [bleFilterUUID] }],
     optionalServices: [PRISMTX_SERVICE_UUID],
   });
 
@@ -436,10 +448,10 @@ export async function pairNewDevice(
 export async function generateSessionKey(): Promise<string> {
   const key = await crypto.subtle.generateKey(
     { name: 'AES-GCM', length: 256 },
-    true,   // extractable — we need to export and share it
+    true, // extractable — we need to export and share it
     ['encrypt', 'decrypt']
   );
-  const raw  = await crypto.subtle.exportKey('raw', key);
+  const raw = await crypto.subtle.exportKey('raw', key);
   return btoa(String.fromCharCode(...new Uint8Array(raw)));
 }
 

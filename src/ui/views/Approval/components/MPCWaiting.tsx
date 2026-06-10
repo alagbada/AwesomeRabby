@@ -33,6 +33,8 @@ import { generateSessionId } from '@/ui/utils/BLE/bleService';
 interface ApprovalParams {
   address: string;
   chainId?: number;
+  to?: string;
+  value?: string;
   from?: string;
   nonce?: string;
   isGnosis?: boolean;
@@ -83,6 +85,8 @@ export const MPCWaiting: React.FC<{
         // ── Step 3: Compute the hash that must be signed ───────────────────
         let msgHashHex: string;
         let signingTxId: string | undefined;
+        let signDescription: string;
+        let signApprovalType = approvalType ?? 'MPCApproval';
 
         if (approvalType === 'SignTx') {
           // Transaction signing — hash the unsigned EIP-155 / EIP-1559 tx
@@ -92,6 +96,13 @@ export const MPCWaiting: React.FC<{
           }
           const { msgHashHex: h } = await wallet.getMPCTxSignHash(signingTxId);
           msgHashHex = h;
+          signApprovalType = 'SignTx';
+          signDescription = buildSignDescription(
+            'Transaction',
+            account.address,
+            params.chainId,
+            params.to
+          );
         } else if (approvalType === 'SignTypedData') {
           // EIP-712 typed-data signing
           const typedData = (params.extra?.mpcTypedData as string) ?? '';
@@ -99,10 +110,16 @@ export const MPCWaiting: React.FC<{
           if (!typedData) {
             throw new Error(
               'MPC: typed data missing from approval params. ' +
-              'Ensure SignTypedData passes extra.mpcTypedData for MPC accounts.'
+                'Ensure SignTypedData passes extra.mpcTypedData for MPC accounts.'
             );
           }
           msgHashHex = await wallet.getMPCTypedDataSignHash(typedData, version);
+          signApprovalType = 'SignTypedData';
+          signDescription = buildSignDescription(
+            `Typed data ${version}`,
+            account.address,
+            params.chainId
+          );
         } else {
           // Personal message signing — EIP-191 hash.
           // The raw message hex was forwarded from SignText.tsx via params.extra.mpcRawMessage.
@@ -110,10 +127,16 @@ export const MPCWaiting: React.FC<{
           if (!rawMessage) {
             throw new Error(
               'MPC: raw message data missing from approval params. ' +
-              'Ensure SignText passes extra.mpcRawMessage for MPC accounts.'
+                'Ensure SignText passes extra.mpcRawMessage for MPC accounts.'
             );
           }
           msgHashHex = await wallet.getMPCPersonalMessageSignHash(rawMessage);
+          signApprovalType = 'SignText';
+          signDescription = buildSignDescription(
+            params.extra?.signTextMethod || 'Personal message',
+            account.address,
+            params.chainId
+          );
         }
 
         // ── Step 4: Connect to the paired phone via BLE ────────────────────
@@ -140,7 +163,11 @@ export const MPCWaiting: React.FC<{
           ble,
           ctx.keyShare1Json,
           msgHashHex,
-          signingSessionId
+          signingSessionId,
+          {
+            approvalType: signApprovalType,
+            description: signDescription,
+          }
         );
         ble.disconnect();
         setBleStatus(BLEStatus.DISCONNECTED);
@@ -172,10 +199,12 @@ export const MPCWaiting: React.FC<{
   if (errorMsg) {
     return (
       <div className="flex flex-col items-center gap-5 px-6 py-8 text-center">
-        <div className={clsx(
-          'w-14 h-14 rounded-full flex items-center justify-center',
-          'bg-red-100 text-[28px]'
-        )}>
+        <div
+          className={clsx(
+            'w-14 h-14 rounded-full flex items-center justify-center',
+            'bg-red-100 text-[28px]'
+          )}
+        >
           ✕
         </div>
         <p className="text-r-neutral-title-1 text-[17px] font-semibold">
@@ -248,23 +277,25 @@ const BLEStatusIndicator: React.FC<{ status: BLEStatus }> = ({ status }) => {
   const error = status === BLEStatus.ERROR || status === BLEStatus.TIMEOUT;
 
   return (
-    <div className={clsx(
-      'w-14 h-14 rounded-full border-4',
-      spinning && 'border-r-blue-default border-t-transparent animate-spin',
-      done && 'border-r-green-light',
-      error && 'border-red-500',
-    )} />
+    <div
+      className={clsx(
+        'w-14 h-14 rounded-full border-4',
+        spinning && 'border-r-blue-default border-t-transparent animate-spin',
+        done && 'border-r-green-light',
+        error && 'border-red-500'
+      )}
+    />
   );
 };
 
 const statusLabels: Partial<Record<BLEStatus, string>> = {
-  [BLEStatus.IDLE]:         'Idle',
-  [BLEStatus.SCANNING]:     'Waiting for phone',
-  [BLEStatus.CONNECTING]:   'Connecting',
-  [BLEStatus.CONNECTED]:    'Connected',
+  [BLEStatus.IDLE]: 'Idle',
+  [BLEStatus.SCANNING]: 'Waiting for phone',
+  [BLEStatus.CONNECTING]: 'Connecting',
+  [BLEStatus.CONNECTED]: 'Connected',
   [BLEStatus.DISCONNECTED]: 'Done',
-  [BLEStatus.TIMEOUT]:      'Timed out',
-  [BLEStatus.ERROR]:        'Error',
+  [BLEStatus.TIMEOUT]: 'Timed out',
+  [BLEStatus.ERROR]: 'Error',
 };
 
 const BLEStatusBadge: React.FC<{ status: BLEStatus }> = ({ status }) => {
@@ -272,18 +303,37 @@ const BLEStatusBadge: React.FC<{ status: BLEStatus }> = ({ status }) => {
   if (!label) return null;
 
   const isError = status === BLEStatus.ERROR || status === BLEStatus.TIMEOUT;
-  const isDone  = status === BLEStatus.DISCONNECTED;
+  const isDone = status === BLEStatus.DISCONNECTED;
 
   return (
-    <span className={clsx(
-      'px-3 py-1 rounded-full text-[12px] font-medium',
-      isError ? 'bg-red-100 text-red-700' : '',
-      isDone  ? 'bg-r-green-light text-green-700' : '',
-      !isError && !isDone ? 'bg-r-blue-light text-r-blue-default' : '',
-    )}>
+    <span
+      className={clsx(
+        'px-3 py-1 rounded-full text-[12px] font-medium',
+        isError ? 'bg-red-100 text-red-700' : '',
+        isDone ? 'bg-r-green-light text-green-700' : '',
+        !isError && !isDone ? 'bg-r-blue-light text-r-blue-default' : ''
+      )}
+    >
       BLE: {label}
     </span>
   );
 };
 
 export default MPCWaiting;
+
+function buildSignDescription(
+  label: string,
+  address: string,
+  chainId?: number,
+  to?: string
+) {
+  const parts = [label, `from ${shortAddress(address)}`];
+  if (to) parts.push(`to ${shortAddress(to)}`);
+  if (chainId) parts.push(`on chain ${chainId}`);
+  return parts.join(' ');
+}
+
+function shortAddress(address: string) {
+  if (!address) return 'unknown account';
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}

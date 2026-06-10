@@ -27,12 +27,12 @@ export const ImportMPCRestore = () => {
   const wallet = useWallet();
   const history = useHistory();
 
-  const [backupJson,      setBackupJson]      = useState('');
-  const [fileName,        setFileName]        = useState('');
-  const [passphrase,      setPassphrase]      = useState('');
-  const [walletPassword,  setWalletPassword]  = useState('');
+  const [backupJson, setBackupJson] = useState('');
+  const [fileName, setFileName] = useState('');
+  const [passphrase, setPassphrase] = useState('');
+  const [walletPassword, setWalletPassword] = useState('');
   const [walletPassword2, setWalletPassword2] = useState('');
-  const [loading,         setLoading]         = useState(false);
+  const [loading, setLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +40,7 @@ export const ImportMPCRestore = () => {
     if (!file) return;
     setFileName(file.name);
     const reader = new FileReader();
-    reader.onload = (ev) => setBackupJson(ev.target?.result as string ?? '');
+    reader.onload = (ev) => setBackupJson((ev.target?.result as string) ?? '');
     reader.readAsText(file);
   };
 
@@ -58,11 +58,15 @@ export const ImportMPCRestore = () => {
       return;
     }
     if (walletPassword !== walletPassword2) {
-      message.error(t('page.newUserImport.importMPCRestore.errorPasswordMismatch'));
+      message.error(
+        t('page.newUserImport.importMPCRestore.errorPasswordMismatch')
+      );
       return;
     }
     if (walletPassword.length < 8) {
-      message.error(t('page.newUserImport.importMPCRestore.errorPasswordTooShort'));
+      message.error(
+        t('page.newUserImport.importMPCRestore.errorPasswordTooShort')
+      );
       return;
     }
 
@@ -72,7 +76,9 @@ export const ImportMPCRestore = () => {
       await wallet.importMPCAccountFromBackup(backupJson, passphrase);
       history.push('/new-user/success');
     } catch (e: any) {
-      message.error(e?.message ?? t('page.newUserImport.importMPCRestore.errorGeneric'));
+      message.error(
+        e?.message ?? t('page.newUserImport.importMPCRestore.errorGeneric')
+      );
     } finally {
       setLoading(false);
     }
@@ -96,7 +102,6 @@ export const ImportMPCRestore = () => {
       title={t('page.newUserImport.importMPCRestore.title')}
     >
       <div className="flex flex-col gap-[14px] mt-[20px] px-[2px]">
-
         {/* Header icon + subtitle */}
         <div className="flex items-center gap-[10px] mb-[4px]">
           <RcAddAddressOptionMPCIcon className="w-[20px] h-[20px] shrink-0 text-r-neutral-foot" />
@@ -121,7 +126,8 @@ export const ImportMPCRestore = () => {
             onClick={() => fileRef.current?.click()}
           >
             <span className="text-[13px] text-r-neutral-title1 truncate flex-1 leading-tight">
-              {fileName || t('page.newUserImport.importMPCRestore.filePlaceholder')}
+              {fileName ||
+                t('page.newUserImport.importMPCRestore.filePlaceholder')}
             </span>
             <Button size="small" className="shrink-0">
               {t('page.newUserImport.importMPCRestore.browse')}
@@ -144,7 +150,9 @@ export const ImportMPCRestore = () => {
           <Input.Password
             value={passphrase}
             onChange={(e) => setPassphrase(e.target.value)}
-            placeholder={t('page.newUserImport.importMPCRestore.passphrasePlaceholder')}
+            placeholder={t(
+              'page.newUserImport.importMPCRestore.passphrasePlaceholder'
+            )}
             size="large"
           />
         </div>
@@ -157,7 +165,9 @@ export const ImportMPCRestore = () => {
           <Input.Password
             value={walletPassword}
             onChange={(e) => setWalletPassword(e.target.value)}
-            placeholder={t('page.newUserImport.importMPCRestore.passwordPlaceholder')}
+            placeholder={t(
+              'page.newUserImport.importMPCRestore.passwordPlaceholder'
+            )}
             size="large"
             className="mb-[8px]"
           />
@@ -165,7 +175,9 @@ export const ImportMPCRestore = () => {
             value={walletPassword2}
             onChange={(e) => setWalletPassword2(e.target.value)}
             onPressEnter={handleSubmit}
-            placeholder={t('page.newUserImport.importMPCRestore.passwordConfirmPlaceholder')}
+            placeholder={t(
+              'page.newUserImport.importMPCRestore.passwordConfirmPlaceholder'
+            )}
             size="large"
           />
         </div>
@@ -175,13 +187,14 @@ export const ImportMPCRestore = () => {
           size="large"
           block
           loading={loading}
-          disabled={!backupJson || !passphrase || !walletPassword || !walletPassword2}
+          disabled={
+            !backupJson || !passphrase || !walletPassword || !walletPassword2
+          }
           onClick={handleSubmit}
           className="mt-[4px] h-[52px] rounded-[8px] text-[15px] font-medium shadow-none"
         >
           {t('page.newUserImport.importMPCRestore.restoreButton')}
         </Button>
-
       </div>
     </Card>
   );

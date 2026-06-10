@@ -1836,7 +1836,11 @@ export class WalletController extends BaseController {
           }
           this.updateAlianName(
             acc?.address,
-            `${WALLET_BRAND_CONTENT[acc?.brandName]?.name ?? acc?.brandName ?? 'Account'} ${index + 1}`
+            `${
+              WALLET_BRAND_CONTENT[acc?.brandName]?.name ??
+              acc?.brandName ??
+              'Account'
+            } ${index + 1}`
           );
         });
       });
@@ -1858,7 +1862,9 @@ export class WalletController extends BaseController {
         group.forEach((acc, index) => {
           this.updateAlianName(
             acc?.address,
-            `${BRAND_ALIAN_TYPE_TEXT[acc?.type] ?? acc?.type ?? 'Account'} ${index + 1}`
+            `${BRAND_ALIAN_TYPE_TEXT[acc?.type] ?? acc?.type ?? 'Account'} ${
+              index + 1
+            }`
           );
         })
       );
@@ -1887,7 +1893,9 @@ export class WalletController extends BaseController {
    */
   fixUndefinedAlianNames = async () => {
     const aliases = contactBookService.listAlias();
-    const broken = aliases.filter((a) => /^undefined\s+\d+$/.test(a.name ?? ''));
+    const broken = aliases.filter((a) =>
+      /^undefined\s+\d+$/.test(a.name ?? '')
+    );
     if (broken.length === 0) return;
 
     const keyrings = await keyringService.getAllTypedAccounts();
@@ -1904,8 +1912,8 @@ export class WalletController extends BaseController {
     }
 
     // Build per-type and per-brand ordered address lists (mirrors initAlianNames)
-    const typeGroups  = new Map<string, string[]>();   // type   → [addr…]
-    const brandGroups = new Map<string, string[]>();   // brand  → [addr…]
+    const typeGroups = new Map<string, string[]>(); // type   → [addr…]
+    const brandGroups = new Map<string, string[]>(); // brand  → [addr…]
 
     for (const kr of keyrings) {
       if (kr.type === 'WalletConnect') {
@@ -1925,24 +1933,24 @@ export class WalletController extends BaseController {
     for (const alias of broken) {
       if (!alias.address) continue;
       const addr = alias.address.toLowerCase();
-      const info  = addrMap.get(addr);
+      const info = addrMap.get(addr);
       if (!info) continue;
 
       let correctName: string;
 
       if (info.type === 'WalletConnect') {
         const group = brandGroups.get(info.brandName) ?? [];
-        const idx   = group.indexOf(addr);
-        const label = WALLET_BRAND_CONTENT[info.brandName]?.name
-          ?? info.brandName
-          ?? 'Account';
+        const idx = group.indexOf(addr);
+        const label =
+          WALLET_BRAND_CONTENT[info.brandName]?.name ??
+          info.brandName ??
+          'Account';
         correctName = `${label} ${idx >= 0 ? idx + 1 : 1}`;
       } else {
         const group = typeGroups.get(info.type) ?? [];
-        const idx   = group.indexOf(addr);
-        const label = BRAND_ALIAN_TYPE_TEXT[info.type]
-          ?? info.type
-          ?? 'Account';
+        const idx = group.indexOf(addr);
+        const label =
+          BRAND_ALIAN_TYPE_TEXT[info.type] ?? info.type ?? 'Account';
         correctName = `${label} ${idx >= 0 ? idx + 1 : 1}`;
       }
 
@@ -2229,9 +2237,9 @@ export class WalletController extends BaseController {
         core = true;
       }
       // Use self-hosted rabby-api for token balance data; fall back to DeBank on error.
-      let data = await awesomeApiService.getTotalBalance(address).catch(() =>
-        openapiService.getTotalBalance(address, core),
-      );
+      const data = await awesomeApiService
+        .getTotalBalance(address)
+        .catch(() => openapiService.getTotalBalance(address, core));
       let appChainTotalNetWorth = 0;
       const appChainIds: string[] = [];
       try {
@@ -6607,9 +6615,11 @@ export class WalletController extends BaseController {
 
     // Use self-hosted rabby-api for gas prices; fall back to DeBank for
     // unsupported chains (anything outside our 7-chain CHAIN_META table).
-    return awesomeApiService.gasMarketV2({ customGas: params.customGas, chainId, tx }).catch(() =>
-      openapiService.gasMarketV2({ customGas: params.customGas, chainId, tx }),
-    );
+    return awesomeApiService
+      .gasMarketV2({ customGas: params.customGas, chainId, tx })
+      .catch(() =>
+        openapiService.gasMarketV2({ customGas: params.customGas, chainId, tx })
+      );
   };
 
   changeDappProvider = ({
@@ -6703,13 +6713,14 @@ export class WalletController extends BaseController {
    * Called by the pairing UI once both parties have completed key generation.
    */
   addMPCAccount = async (data: MPCAccountData): Promise<string[]> => {
-    let keyring = keyringService
-      .getKeyringsByType(KEYRING_CLASS.MPC)[0] as MPCKeyring | undefined;
+    let keyring = keyringService.getKeyringsByType(KEYRING_CLASS.MPC)[0] as
+      | MPCKeyring
+      | undefined;
 
     if (!keyring) {
-      keyring = await keyringService.addNewKeyring(
+      keyring = (await keyringService.addNewKeyring(
         KEYRING_CLASS.MPC
-      ) as MPCKeyring;
+      )) as MPCKeyring;
     }
 
     keyring.addAccount(data);
@@ -6730,11 +6741,13 @@ export class WalletController extends BaseController {
    * and assembles the final ECDSA signature without ever sending private
    * material back to the background.
    */
-  getMPCSigningContext = async (address: string): Promise<MPCSigningContext> => {
-    const keyring = await keyringService.getKeyringForAccount(
+  getMPCSigningContext = async (
+    address: string
+  ): Promise<MPCSigningContext> => {
+    const keyring = (await keyringService.getKeyringForAccount(
       address,
       KEYRING_CLASS.MPC
-    ) as MPCKeyring;
+    )) as MPCKeyring;
     return keyring.getMPCSigningContext(address);
   };
 
@@ -6761,10 +6774,10 @@ export class WalletController extends BaseController {
     newDeviceId: string,
     newSessionKeyB64: string
   ): Promise<void> => {
-    const keyring = await keyringService.getKeyringForAccount(
+    const keyring = (await keyringService.getKeyringForAccount(
       address,
       KEYRING_CLASS.MPC
-    ) as MPCKeyring;
+    )) as MPCKeyring;
     keyring.updatePairedDevice(address, newDeviceId, newSessionKeyB64);
     await keyringService.persistAllKeyrings();
   };
@@ -6790,16 +6803,16 @@ export class WalletController extends BaseController {
     address: string,
     backupPassphrase: string
   ): Promise<string> => {
-    const keyring = await keyringService.getKeyringForAccount(
+    const keyring = (await keyringService.getKeyringForAccount(
       address,
       KEYRING_CLASS.MPC
-    ) as MPCKeyring;
+    )) as MPCKeyring;
 
     const accountData = keyring.exportAccountData(address);
 
     const subtle = globalThis.crypto.subtle;
-    const salt   = globalThis.crypto.getRandomValues(new Uint8Array(16));
-    const iv     = globalThis.crypto.getRandomValues(new Uint8Array(12));
+    const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
+    const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
 
     const keyMaterial = await subtle.importKey(
       'raw',
@@ -6823,18 +6836,22 @@ export class WalletController extends BaseController {
     );
 
     const toB64 = (buf: ArrayBuffer | Uint8Array) =>
-      btoa(String.fromCharCode(...new Uint8Array(buf instanceof ArrayBuffer ? buf : buf.buffer)));
+      btoa(
+        String.fromCharCode(
+          ...new Uint8Array(buf instanceof ArrayBuffer ? buf : buf.buffer)
+        )
+      );
 
     return JSON.stringify(
       {
-        version:    1,
-        app:        'PrismTx',
+        version: 1,
+        app: 'PrismTx',
         address,
-        encrypted:  toB64(ciphertext),
-        iv:         toB64(iv),
-        salt:       toB64(salt),
+        encrypted: toB64(ciphertext),
+        iv: toB64(iv),
+        salt: toB64(salt),
         iterations: 200_000,
-        digest:     'SHA-256',
+        digest: 'SHA-256',
       },
       null,
       2
@@ -6887,10 +6904,10 @@ export class WalletController extends BaseController {
     );
     const aesKey = await subtle.deriveKey(
       {
-        name:       'PBKDF2',
-        salt:       fromB64(backup.salt),
+        name: 'PBKDF2',
+        salt: fromB64(backup.salt),
         iterations: backup.iterations,
-        hash:       backup.digest as 'SHA-256',
+        hash: backup.digest as 'SHA-256',
       },
       keyMaterial,
       { name: 'AES-GCM', length: 256 },
@@ -6935,10 +6952,7 @@ export class WalletController extends BaseController {
     const rawTx = signingTx.rawTx;
     const chainId = rawTx.chainId;
 
-    const common = Common.custom(
-      { chainId },
-      { hardfork: Hardfork.London }
-    );
+    const common = Common.custom({ chainId }, { hardfork: Hardfork.London });
 
     const is1559 = rawTx.maxFeePerGas !== undefined;
     const txData: Record<string, any> = {
@@ -6960,9 +6974,7 @@ export class WalletController extends BaseController {
 
     const tx = TransactionFactory.fromTxData(txData, { common });
     const msgHashBytes = tx.getHashedMessageToSign();
-    const msgHashHex = addHexPrefix(
-      Buffer.from(msgHashBytes).toString('hex')
-    );
+    const msgHashHex = addHexPrefix(Buffer.from(msgHashBytes).toString('hex'));
 
     return { msgHashHex, chainId };
   };
@@ -6996,10 +7008,7 @@ export class WalletController extends BaseController {
     // legacy EIP-155 needs chainId * 2 + 35 + recoveryParam.
     const recoveryParam = sig.v < 27 ? sig.v : sig.v - 27;
 
-    const common = Common.custom(
-      { chainId },
-      { hardfork: Hardfork.London }
-    );
+    const common = Common.custom({ chainId }, { hardfork: Hardfork.London });
 
     const is1559 = rawTx.maxFeePerGas !== undefined;
     const txData: Record<string, any> = {
@@ -7021,9 +7030,7 @@ export class WalletController extends BaseController {
     } else {
       txData.gasPrice = rawTx.gasPrice;
       // EIP-155 v: chainId * 2 + 35 + recoveryParam
-      txData.v = addHexPrefix(
-        (chainId * 2 + 35 + recoveryParam).toString(16)
-      );
+      txData.v = addHexPrefix((chainId * 2 + 35 + recoveryParam).toString(16));
     }
 
     const signedTx = TransactionFactory.fromTxData(txData, { common });
