@@ -99,7 +99,7 @@ export const MPCWaiting: React.FC<{
           if (!typedData) {
             throw new Error(
               'MPC: typed data missing from approval params. ' +
-              'Ensure SignTypedData passes extra.mpcTypedData for MPC accounts.'
+                'Ensure SignTypedData passes extra.mpcTypedData for MPC accounts.'
             );
           }
           msgHashHex = await wallet.getMPCTypedDataSignHash(typedData, version);
@@ -110,7 +110,7 @@ export const MPCWaiting: React.FC<{
           if (!rawMessage) {
             throw new Error(
               'MPC: raw message data missing from approval params. ' +
-              'Ensure SignText passes extra.mpcRawMessage for MPC accounts.'
+                'Ensure SignText passes extra.mpcRawMessage for MPC accounts.'
             );
           }
           msgHashHex = await wallet.getMPCPersonalMessageSignHash(rawMessage);
@@ -172,10 +172,12 @@ export const MPCWaiting: React.FC<{
   if (errorMsg) {
     return (
       <div className="flex flex-col items-center gap-5 px-6 py-8 text-center">
-        <div className={clsx(
-          'w-14 h-14 rounded-full flex items-center justify-center',
-          'bg-red-100 text-[28px]'
-        )}>
+        <div
+          className={clsx(
+            'w-14 h-14 rounded-full flex items-center justify-center',
+            'bg-red-100 text-[28px]'
+          )}
+        >
           ✕
         </div>
         <p className="text-r-neutral-title-1 text-[17px] font-semibold">
@@ -248,23 +250,25 @@ const BLEStatusIndicator: React.FC<{ status: BLEStatus }> = ({ status }) => {
   const error = status === BLEStatus.ERROR || status === BLEStatus.TIMEOUT;
 
   return (
-    <div className={clsx(
-      'w-14 h-14 rounded-full border-4',
-      spinning && 'border-r-blue-default border-t-transparent animate-spin',
-      done && 'border-r-green-light',
-      error && 'border-red-500',
-    )} />
+    <div
+      className={clsx(
+        'w-14 h-14 rounded-full border-4',
+        spinning && 'border-r-blue-default border-t-transparent animate-spin',
+        done && 'border-r-green-light',
+        error && 'border-red-500'
+      )}
+    />
   );
 };
 
 const statusLabels: Partial<Record<BLEStatus, string>> = {
-  [BLEStatus.IDLE]:         'Idle',
-  [BLEStatus.SCANNING]:     'Waiting for phone',
-  [BLEStatus.CONNECTING]:   'Connecting',
-  [BLEStatus.CONNECTED]:    'Connected',
+  [BLEStatus.IDLE]: 'Idle',
+  [BLEStatus.SCANNING]: 'Waiting for phone',
+  [BLEStatus.CONNECTING]: 'Connecting',
+  [BLEStatus.CONNECTED]: 'Connected',
   [BLEStatus.DISCONNECTED]: 'Done',
-  [BLEStatus.TIMEOUT]:      'Timed out',
-  [BLEStatus.ERROR]:        'Error',
+  [BLEStatus.TIMEOUT]: 'Timed out',
+  [BLEStatus.ERROR]: 'Error',
 };
 
 const BLEStatusBadge: React.FC<{ status: BLEStatus }> = ({ status }) => {
@@ -272,15 +276,17 @@ const BLEStatusBadge: React.FC<{ status: BLEStatus }> = ({ status }) => {
   if (!label) return null;
 
   const isError = status === BLEStatus.ERROR || status === BLEStatus.TIMEOUT;
-  const isDone  = status === BLEStatus.DISCONNECTED;
+  const isDone = status === BLEStatus.DISCONNECTED;
 
   return (
-    <span className={clsx(
-      'px-3 py-1 rounded-full text-[12px] font-medium',
-      isError ? 'bg-red-100 text-red-700' : '',
-      isDone  ? 'bg-r-green-light text-green-700' : '',
-      !isError && !isDone ? 'bg-r-blue-light text-r-blue-default' : '',
-    )}>
+    <span
+      className={clsx(
+        'px-3 py-1 rounded-full text-[12px] font-medium',
+        isError ? 'bg-red-100 text-red-700' : '',
+        isDone ? 'bg-r-green-light text-green-700' : '',
+        !isError && !isDone ? 'bg-r-blue-light text-r-blue-default' : ''
+      )}
+    >
       BLE: {label}
     </span>
   );

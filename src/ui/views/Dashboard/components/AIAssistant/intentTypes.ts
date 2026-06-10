@@ -1,6 +1,12 @@
 // ─── AI Intent Types ─────────────────────────────────────────────────────────
 
-export type IntentAction = 'send' | 'swap' | 'approve' | 'bridge' | 'fund' | 'unknown';
+export type IntentAction =
+  | 'send'
+  | 'swap'
+  | 'approve'
+  | 'bridge'
+  | 'fund'
+  | 'unknown';
 
 export type IntentChain =
   | 'ethereum'

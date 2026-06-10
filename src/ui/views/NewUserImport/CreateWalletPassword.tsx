@@ -15,7 +15,7 @@ import { useMemoizedFn, useMount } from 'ahooks';
 import { message } from 'antd';
 
 export const CreateWalletPassword = () => {
-  const wallet  = useWallet();
+  const wallet = useWallet();
   const history = useHistory();
 
   const handleSubmit = useMemoizedFn(async (password: string) => {

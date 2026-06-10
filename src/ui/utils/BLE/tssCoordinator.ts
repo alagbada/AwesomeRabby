@@ -22,7 +22,12 @@
 import BN from 'bn.js';
 import { Rand } from '@safeheron/crypto-rand';
 import { TPCEcdsaKeyGen, TPCEcdsaSign } from '@safeheron/two-party-ecdsa-js';
-import { publicToAddress, toChecksumAddress, addHexPrefix, bytesToHex } from '@ethereumjs/util';
+import {
+  publicToAddress,
+  toChecksumAddress,
+  addHexPrefix,
+  bytesToHex,
+} from '@ethereumjs/util';
 import { BLEService } from './bleService';
 import { BLEMessageType } from './gattProfile';
 
@@ -41,18 +46,23 @@ import { BLEMessageType } from './gattProfile';
 Rand.config_randomPrimeImp(async (byteSize: number) => {
   const keyPair = await crypto.subtle.generateKey(
     {
-      name:            'RSASSA-PKCS1-v1_5',
-      modulusLength:   byteSize * 8 * 2,   // two primes of byteSize*8 bits each
-      publicExponent:  new Uint8Array([1, 0, 1]),
-      hash:            'SHA-256',
+      name: 'RSASSA-PKCS1-v1_5',
+      modulusLength: byteSize * 8 * 2, // two primes of byteSize*8 bits each
+      publicExponent: new Uint8Array([1, 0, 1]),
+      hash: 'SHA-256',
     },
-    true,              // extractable — required for exportKey('jwk')
-    ['sign', 'verify'],
+    true, // extractable — required for exportKey('jwk')
+    ['sign', 'verify']
   );
-  const jwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey) as JsonWebKey;
+  const jwk = (await crypto.subtle.exportKey(
+    'jwk',
+    keyPair.privateKey
+  )) as JsonWebKey;
   // jwk.p is base64url — normalise to standard base64 for atob, then convert to hex
   const b64 = jwk.p!.replace(/-/g, '+').replace(/_/g, '/');
-  const hex = Array.from(atob(b64), (c) => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+  const hex = Array.from(atob(b64), (c) =>
+    c.charCodeAt(0).toString(16).padStart(2, '0')
+  ).join('');
   return new BN(hex, 16);
 });
 
@@ -80,9 +90,9 @@ export interface SignResult {
 
 // ─── Timeouts ────────────────────────────────────────────────────────────────
 // DKG involves heavy elliptic-curve math on the phone — give it plenty of room.
-const DKG_ROUND_TIMEOUT_MS  = 5 * 60_000;  // 5 minutes per round
+const DKG_ROUND_TIMEOUT_MS = 5 * 60_000; // 5 minutes per round
 // Signing is faster (no key generation), but still needs a generous timeout.
-const SIGN_ROUND_TIMEOUT_MS = 2 * 60_000;  // 2 minutes per round
+const SIGN_ROUND_TIMEOUT_MS = 2 * 60_000; // 2 minutes per round
 
 // ─── Key Generation ───────────────────────────────────────────────────────────
 
@@ -113,24 +123,43 @@ export async function runKeyGenP1(
 
   // ── Round 1: P1 → Phone ──────────────────────────────────────────────────
   const msg1Bytes = p1.step1();
-  console.log(`[P1 DKG ${sid}] → KEYGEN_R1 (${msg1Bytes.length} bytes) sending…`);
+  console.log(
+    `[P1 DKG ${sid}] → KEYGEN_R1 (${msg1Bytes.length} bytes) sending…`
+  );
   await ble.send({
     type: BLEMessageType.KEYGEN_R1,
     sessionId,
     data: toBase64(msg1Bytes),
   });
-  console.log(`[P1 DKG ${sid}] → KEYGEN_R1 sent. Waiting for R2… (timeout ${DKG_ROUND_TIMEOUT_MS / 1000}s)`);
+  console.log(
+    `[P1 DKG ${sid}] → KEYGEN_R1 sent. Waiting for R2… (timeout ${
+      DKG_ROUND_TIMEOUT_MS / 1000
+    }s)`
+  );
 
   // ── Round 2: Phone → P1 ──────────────────────────────────────────────────
   const response1 = await ble.receive(DKG_ROUND_TIMEOUT_MS);
-  console.log(`[P1 DKG ${sid}] ← received type="${response1.type}" sessionId="${response1.sessionId?.slice(0, 8)}"`);
-  assertMessageType(response1.type, BLEMessageType.KEYGEN_R2, sessionId, response1.sessionId);
+  console.log(
+    `[P1 DKG ${sid}] ← received type="${
+      response1.type
+    }" sessionId="${response1.sessionId?.slice(0, 8)}"`
+  );
+  assertMessageType(
+    response1.type,
+    BLEMessageType.KEYGEN_R2,
+    sessionId,
+    response1.sessionId
+  );
   const msg2Bytes = fromBase64(response1.data);
-  console.log(`[P1 DKG ${sid}] ← KEYGEN_R2 OK (${msg2Bytes.length} bytes). Running step2…`);
+  console.log(
+    `[P1 DKG ${sid}] ← KEYGEN_R2 OK (${msg2Bytes.length} bytes). Running step2…`
+  );
 
   // ── Round 3: P1 → Phone ──────────────────────────────────────────────────
   const msg3Bytes = p1.step2(msg2Bytes);
-  console.log(`[P1 DKG ${sid}] → KEYGEN_R3 (${msg3Bytes.length} bytes) sending…`);
+  console.log(
+    `[P1 DKG ${sid}] → KEYGEN_R3 (${msg3Bytes.length} bytes) sending…`
+  );
   await ble.send({
     type: BLEMessageType.KEYGEN_R3,
     sessionId,
@@ -141,14 +170,19 @@ export async function runKeyGenP1(
   // ── Wait for phone to confirm DKG complete ────────────────────────────────
   const response2 = await ble.receive(DKG_ROUND_TIMEOUT_MS);
   console.log(`[P1 DKG ${sid}] ← received type="${response2.type}"`);
-  assertMessageType(response2.type, BLEMessageType.KEYGEN_DONE, sessionId, response2.sessionId);
+  assertMessageType(
+    response2.type,
+    BLEMessageType.KEYGEN_DONE,
+    sessionId,
+    response2.sessionId
+  );
   console.log(`[P1 DKG ${sid}] ← KEYGEN_DONE received. Exporting key share…`);
 
   // ── Export key share ─────────────────────────────────────────────────────
-  const keyShare1     = p1.exportKeyShare();
+  const keyShare1 = p1.exportKeyShare();
   const keyShare1Json = JSON.stringify(keyShare1);
-  const address       = deriveAddress(keyShare1);
-  const publicKeyHex  = derivePublicKeyHex(keyShare1);
+  const address = deriveAddress(keyShare1);
+  const publicKeyHex = derivePublicKeyHex(keyShare1);
   console.log(`[P1 DKG ${sid}] ✓ complete — address: ${address}`);
 
   return { keyShare1Json, publicKeyHex, address };
@@ -181,12 +215,17 @@ export async function runSignP1(
   const sid = sessionId.slice(0, 8);
   console.log(`[P1 SIGN ${sid}] createContext — start`);
   const msgHashBN = new BN(msgHashHex.replace(/^0x/, ''), 16);
-  const p1 = await TPCEcdsaSign.P1Context.createContext(keyShare1Json, msgHashBN);
+  const p1 = await TPCEcdsaSign.P1Context.createContext(
+    keyShare1Json,
+    msgHashBN
+  );
   console.log(`[P1 SIGN ${sid}] createContext — done`);
 
   // ── Round 1: P1 → Phone ──────────────────────────────────────────────────
   const msg1Bytes = p1.step1();
-  console.log(`[P1 SIGN ${sid}] → SIGN_R1 (${msg1Bytes.length} bytes) sending…`);
+  console.log(
+    `[P1 SIGN ${sid}] → SIGN_R1 (${msg1Bytes.length} bytes) sending…`
+  );
   await ble.send({
     type: BLEMessageType.SIGN_R1,
     sessionId,
@@ -197,13 +236,22 @@ export async function runSignP1(
   // ── Round 2: Phone → P1 ──────────────────────────────────────────────────
   const response1 = await ble.receive(SIGN_ROUND_TIMEOUT_MS);
   console.log(`[P1 SIGN ${sid}] ← received type="${response1.type}"`);
-  assertMessageType(response1.type, BLEMessageType.SIGN_R2, sessionId, response1.sessionId);
+  assertMessageType(
+    response1.type,
+    BLEMessageType.SIGN_R2,
+    sessionId,
+    response1.sessionId
+  );
   const msg2Bytes = fromBase64(response1.data);
-  console.log(`[P1 SIGN ${sid}] ← SIGN_R2 OK (${msg2Bytes.length} bytes). Running step2…`);
+  console.log(
+    `[P1 SIGN ${sid}] ← SIGN_R2 OK (${msg2Bytes.length} bytes). Running step2…`
+  );
 
   // ── Round 3: P1 → Phone ──────────────────────────────────────────────────
   const msg3Bytes = p1.step2(msg2Bytes);
-  console.log(`[P1 SIGN ${sid}] → SIGN_R3 (${msg3Bytes.length} bytes) sending…`);
+  console.log(
+    `[P1 SIGN ${sid}] → SIGN_R3 (${msg3Bytes.length} bytes) sending…`
+  );
   await ble.send({
     type: BLEMessageType.SIGN_R3,
     sessionId,
@@ -213,11 +261,18 @@ export async function runSignP1(
 
   // ── Round 4: Phone → P1 ──────────────────────────────────────────────────
   const response2 = await ble.receive(SIGN_ROUND_TIMEOUT_MS);
-  assertMessageType(response2.type, BLEMessageType.SIGN_R4, sessionId, response2.sessionId);
+  assertMessageType(
+    response2.type,
+    BLEMessageType.SIGN_R4,
+    sessionId,
+    response2.sessionId
+  );
   const msg4Bytes = fromBase64(response2.data);
 
   // ── Final step: assemble signature ───────────────────────────────────────
-  console.log(`[P1 SIGN] ← SIGN_R4 OK (${msg4Bytes.length} bytes). Running step3…`);
+  console.log(
+    `[P1 SIGN] ← SIGN_R4 OK (${msg4Bytes.length} bytes). Running step3…`
+  );
   p1.step3(msg4Bytes);
   const [r, s, v] = p1.exportSig() as [BN, BN, number];
   console.log(`[P1 SIGN] ✓ signature assembled (v=${v < 27 ? v + 27 : v})`);
@@ -226,7 +281,7 @@ export async function runSignP1(
   const sHex = s.toString(16).padStart(64, '0');
   // Ethereum uses 27/28 for v; the library returns 0/1
   const vNormalised = v < 27 ? v + 27 : v;
-  const vHex        = vNormalised.toString(16).padStart(2, '0');
+  const vHex = vNormalised.toString(16).padStart(2, '0');
 
   return {
     r: addHexPrefix(rHex),
@@ -263,9 +318,9 @@ function assertMessageType(
   }
   if (actualSessionId !== expectedSessionId) {
     throw new Error(
-      `TSS: session ID mismatch — ` +
-      `expected "${expectedSessionId}" but received "${actualSessionId}". ` +
-      'This may be a stale message from a previous session.'
+      'TSS: session ID mismatch — ' +
+        `expected "${expectedSessionId}" but received "${actualSessionId}". ` +
+        'This may be a stale message from a previous session.'
     );
   }
 }
@@ -304,7 +359,7 @@ function getPublicKeyBytes(keyShare1: any): Uint8Array {
   if (!Q || typeof Q.encode !== 'function') {
     throw new Error(
       'TSS: could not extract joint public key from KeyShare1. ' +
-      'The key share may be malformed.'
+        'The key share may be malformed.'
     );
   }
   return new Uint8Array(Q.encode('array', false)); // false = uncompressed

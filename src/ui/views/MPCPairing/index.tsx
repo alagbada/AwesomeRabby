@@ -69,33 +69,33 @@ export const MPCPairing: React.FC<{
   onBack?: () => void;
   onNavigate?: (type: string, state?: Record<string, any>) => void;
 }> = ({ isInModal, onBack, onNavigate }) => {
-  const wallet   = useWallet();
-  const history  = useHistory();
+  const wallet = useWallet();
+  const history = useHistory();
   const location = useLocation<{ successRoute?: string }>();
   // Optional override for where to navigate on success (used by new-user onboarding)
   const successRoute = location.state?.successRoute ?? '/dashboard';
 
   // ── Pairing session state ──────────────────────────────────────────────────
-  const [step,        setStep]    = useState<PairingStep>('show_qr');
-  const [bleStatus,   setBle]     = useState<BLEStatus>(BLEStatus.IDLE);
-  const [phoneStatus, setPhone]   = useState<PhoneStatus | null>(null);
-  const [address,     setAddress] = useState<string>('');
-  const [pubKeyHex,   setPubKey]  = useState<string>('');
-  const [error,       setError]   = useState<string>('');
-  const [qrPayload,   setQrPayload] = useState<string>('');
+  const [step, setStep] = useState<PairingStep>('show_qr');
+  const [bleStatus, setBle] = useState<BLEStatus>(BLEStatus.IDLE);
+  const [phoneStatus, setPhone] = useState<PhoneStatus | null>(null);
+  const [address, setAddress] = useState<string>('');
+  const [pubKeyHex, setPubKey] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [qrPayload, setQrPayload] = useState<string>('');
 
   // Signing context built once per page load — stable across renders
   const sessionRef = useRef<{
-    sessionId:    string;
+    sessionId: string;
     sessionKeyB64: string;
     bleFilterUUID: string;
-    qrPayload:    string;
+    qrPayload: string;
   } | null>(null);
 
   // Key generation result — held in ref until user confirms
   const keyGenRef = useRef<{
     keyShare1Json: string;
-    deviceId:      string;
+    deviceId: string;
   } | null>(null);
 
   // ── Generate QR payload on mount ───────────────────────────────────────────
@@ -103,14 +103,14 @@ export const MPCPairing: React.FC<{
     let cancelled = false;
 
     (async () => {
-      const sessionId     = generateSessionId();
+      const sessionId = generateSessionId();
       const sessionKeyB64 = await generateSessionKey();
       const bleFilterUUID = crypto.randomUUID();
 
       if (cancelled) return;
 
       const payload: PairingQRPayload = {
-        v:   1,
+        v: 1,
         sid: sessionId,
         key: sessionKeyB64,
         fid: bleFilterUUID,
@@ -129,7 +129,9 @@ export const MPCPairing: React.FC<{
       setQrPayload(qrPayloadStr);
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ── BLE + DKG flow (triggered by button click — required for user gesture) ─
@@ -149,7 +151,7 @@ export const MPCPairing: React.FC<{
         (s) => {
           setBle(s);
           if (s === BLEStatus.CONNECTING) setStep('connecting');
-          if (s === BLEStatus.CONNECTED)  setStep('keygen');
+          if (s === BLEStatus.CONNECTED) setStep('keygen');
         }
       );
 
@@ -172,7 +174,6 @@ export const MPCPairing: React.FC<{
       setAddress(result.address);
       setPubKey(result.publicKeyHex);
       setStep('confirm');
-
     } catch (err: any) {
       setError(err?.message ?? 'An unexpected error occurred during pairing.');
       setStep('error');
@@ -182,7 +183,7 @@ export const MPCPairing: React.FC<{
   // ── Save account after user confirms address ───────────────────────────────
   const handleConfirm = async () => {
     const session = sessionRef.current;
-    const keyGen  = keyGenRef.current;
+    const keyGen = keyGenRef.current;
     if (!session || !keyGen) return;
 
     setStep('saving');
@@ -191,10 +192,10 @@ export const MPCPairing: React.FC<{
     try {
       await wallet.addMPCAccount({
         address,
-        keyShare1Json:  keyGen.keyShare1Json,
+        keyShare1Json: keyGen.keyShare1Json,
         pairedDeviceId: keyGen.deviceId,
-        sessionKeyB64:  session.sessionKeyB64,
-        publicKeyHex:   pubKeyHex,
+        sessionKeyB64: session.sessionKeyB64,
+        publicKeyHex: pubKeyHex,
       });
       setStep('success');
     } catch (err: any) {
@@ -214,11 +215,12 @@ export const MPCPairing: React.FC<{
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className={clsx(
-      'flex flex-col items-center justify-center',
-      isInModal ? 'px-6 py-8' : 'min-h-screen bg-r-neutral-bg1 px-6 py-10'
-    )}>
-
+    <div
+      className={clsx(
+        'flex flex-col items-center justify-center',
+        isInModal ? 'px-6 py-8' : 'min-h-screen bg-r-neutral-bg1 px-6 py-10'
+      )}
+    >
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-r-neutral-title-1 text-[24px] font-bold leading-tight">
@@ -230,20 +232,22 @@ export const MPCPairing: React.FC<{
       </div>
 
       {/* Step: show QR */}
-      {(step === 'show_qr') && (
-        <StepShowQR
-          qrPayload={qrPayload}
-          onConnect={handleConnect}
-        />
+      {step === 'show_qr' && (
+        <StepShowQR qrPayload={qrPayload} onConnect={handleConnect} />
       )}
 
       {/* Steps: scanning / connecting */}
       {(step === 'scanning' || step === 'connecting') && (
         <StepProgress
-          title={step === 'scanning' ? 'Opening Bluetooth scanner…' : 'Connecting to phone…'}
-          subtitle={step === 'scanning'
-            ? 'Select your phone from the list'
-            : 'Establishing secure connection'
+          title={
+            step === 'scanning'
+              ? 'Opening Bluetooth scanner…'
+              : 'Connecting to phone…'
+          }
+          subtitle={
+            step === 'scanning'
+              ? 'Select your phone from the list'
+              : 'Establishing secure connection'
           }
         />
       )}
@@ -289,10 +293,7 @@ export const MPCPairing: React.FC<{
       )}
 
       {/* Step: error */}
-      {step === 'error' && (
-        <StepError message={error} onRetry={handleRetry} />
-      )}
-
+      {step === 'error' && <StepError message={error} onRetry={handleRetry} />}
     </div>
   );
 };
@@ -304,14 +305,17 @@ const StepShowQR: React.FC<{
   onConnect: () => void;
 }> = ({ qrPayload, onConnect }) => (
   <div className="flex flex-col items-center gap-6">
-    <div className={clsx(
-      'bg-white p-4 rounded-[16px]',
-      'shadow-[0px_8px_24px_rgba(25,41,69,0.12)]'
-    )}>
-      {qrPayload
-        ? <QRCode value={qrPayload} size={240} level="M" />
-        : <div className="w-[240px] h-[240px] bg-r-neutral-bg2 rounded animate-pulse" />
-      }
+    <div
+      className={clsx(
+        'bg-white p-4 rounded-[16px]',
+        'shadow-[0px_8px_24px_rgba(25,41,69,0.12)]'
+      )}
+    >
+      {qrPayload ? (
+        <QRCode value={qrPayload} size={240} level="M" />
+      ) : (
+        <div className="w-[240px] h-[240px] bg-r-neutral-bg2 rounded animate-pulse" />
+      )}
     </div>
 
     <div className="text-center max-w-[280px]">
@@ -349,18 +353,22 @@ const StepProgress: React.FC<{
 }> = ({ title, subtitle, phoneStatus }) => (
   <div className="flex flex-col items-center gap-4 text-center">
     {/* Spinner */}
-    <div className={clsx(
-      'w-[56px] h-[56px] rounded-full border-4',
-      'border-r-blue-default border-t-transparent',
-      'animate-spin'
-    )} />
+    <div
+      className={clsx(
+        'w-[56px] h-[56px] rounded-full border-4',
+        'border-r-blue-default border-t-transparent',
+        'animate-spin'
+      )}
+    />
     <p className="text-r-neutral-title-1 text-[17px] font-medium">{title}</p>
     <p className="text-r-neutral-foot text-[13px] max-w-[240px]">{subtitle}</p>
     {phoneStatus && (
-      <span className={clsx(
-        'px-3 py-1 rounded-full text-[12px]',
-        'bg-r-blue-light text-r-blue-default'
-      )}>
+      <span
+        className={clsx(
+          'px-3 py-1 rounded-full text-[12px]',
+          'bg-r-blue-light text-r-blue-default'
+        )}
+      >
         Phone: {phoneStatus}
       </span>
     )}
@@ -373,22 +381,29 @@ const StepConfirm: React.FC<{
   onRetry: () => void;
 }> = ({ address, onConfirm, onRetry }) => (
   <div className="flex flex-col items-center gap-6 w-full max-w-[360px]">
-    <div className={clsx(
-      'w-full rounded-[12px] p-5',
-      'bg-r-neutral-bg2 border border-rabby-neutral-line'
-    )}>
-      <p className="text-r-neutral-foot text-[12px] mb-1">Your new wallet address</p>
+    <div
+      className={clsx(
+        'w-full rounded-[12px] p-5',
+        'bg-r-neutral-bg2 border border-rabby-neutral-line'
+      )}
+    >
+      <p className="text-r-neutral-foot text-[12px] mb-1">
+        Your new wallet address
+      </p>
       <p className="text-r-neutral-title-1 text-[13px] font-mono break-all leading-relaxed">
         {address}
       </p>
     </div>
 
-    <div className={clsx(
-      'w-full rounded-[10px] p-4',
-      'bg-orange-50 border border-orange-200'
-    )}>
+    <div
+      className={clsx(
+        'w-full rounded-[10px] p-4',
+        'bg-orange-50 border border-orange-200'
+      )}
+    >
       <p className="text-orange-700 text-[13px] leading-relaxed">
-        ⚠️ Verify this address matches what is shown on your phone before confirming.
+        ⚠️ Verify this address matches what is shown on your phone before
+        confirming.
       </p>
     </div>
 
@@ -418,22 +433,27 @@ const StepSuccess: React.FC<{
   onDone: () => void;
 }> = ({ address, onDone }) => (
   <div className="flex flex-col items-center gap-6 text-center w-full max-w-[360px]">
-    <div className={clsx(
-      'w-[64px] h-[64px] rounded-full',
-      'bg-r-green-light flex items-center justify-center'
-    )}>
+    <div
+      className={clsx(
+        'w-[64px] h-[64px] rounded-full',
+        'bg-r-green-light flex items-center justify-center'
+      )}
+    >
       <span className="text-[32px]">✓</span>
     </div>
 
     <div>
-      <p className="text-r-neutral-title-1 text-[20px] font-bold">Wallet created!</p>
+      <p className="text-r-neutral-title-1 text-[20px] font-bold">
+        Wallet created!
+      </p>
       <p className="text-r-neutral-foot text-[13px] mt-2 font-mono break-all">
         {address}
       </p>
     </div>
 
     <p className="text-r-neutral-foot text-[13px] max-w-[280px]">
-      Every transaction now requires approval from both your browser and your phone.
+      Every transaction now requires approval from both your browser and your
+      phone.
     </p>
 
     <button
@@ -455,14 +475,18 @@ const StepError: React.FC<{
   onRetry: () => void;
 }> = ({ message, onRetry }) => (
   <div className="flex flex-col items-center gap-6 text-center w-full max-w-[360px]">
-    <div className={clsx(
-      'w-[64px] h-[64px] rounded-full',
-      'bg-red-100 flex items-center justify-center'
-    )}>
+    <div
+      className={clsx(
+        'w-[64px] h-[64px] rounded-full',
+        'bg-red-100 flex items-center justify-center'
+      )}
+    >
       <span className="text-[32px]">✕</span>
     </div>
 
-    <p className="text-r-neutral-title-1 text-[17px] font-medium">Pairing failed</p>
+    <p className="text-r-neutral-title-1 text-[17px] font-medium">
+      Pairing failed
+    </p>
 
     <div className="w-full rounded-[10px] bg-r-neutral-bg2 p-4">
       <p className="text-r-neutral-foot text-[13px] break-words">{message}</p>

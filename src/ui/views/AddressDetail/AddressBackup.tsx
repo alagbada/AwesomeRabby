@@ -24,17 +24,17 @@ const MPCBackupSection: React.FC<{ address: string }> = ({ address }) => {
   const { getContainer } = usePopupContainer();
 
   // Passphrase modal state
-  const [modalOpen,  setModalOpen]  = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [passphrase, setPassphrase] = useState('');
-  const [confirm,    setConfirm]    = useState('');
-  const [exporting,  setExporting]  = useState(false);
+  const [confirm, setConfirm] = useState('');
+  const [exporting, setExporting] = useState(false);
   const passphraseRef = useRef<string>('');
 
   const triggerDownload = (json: string) => {
     const blob = new Blob([json], { type: 'application/json' });
-    const url  = URL.createObjectURL(blob);
-    const tag  = document.createElement('a');
-    tag.href     = url;
+    const url = URL.createObjectURL(blob);
+    const tag = document.createElement('a');
+    tag.href = url;
     tag.download = `prismtx-backup-${address.slice(2, 8).toLowerCase()}.json`;
     document.body.appendChild(tag);
     tag.click();
@@ -44,9 +44,9 @@ const MPCBackupSection: React.FC<{ address: string }> = ({ address }) => {
 
   const handleExport = async () => {
     await AuthenticationModalPromise({
-      confirmText:       t('global.confirm'),
-      cancelText:        t('global.Cancel'),
-      title:             t('page.addressDetail.exportMPCKeyShare'),
+      confirmText: t('global.confirm'),
+      cancelText: t('global.Cancel'),
+      title: t('page.addressDetail.exportMPCKeyShare'),
       validationHandler: async (_password: string) => {
         // password verified — open passphrase modal next
       },
@@ -55,7 +55,9 @@ const MPCBackupSection: React.FC<{ address: string }> = ({ address }) => {
         setConfirm('');
         setModalOpen(true);
       },
-      onCancel() { /* noop */ },
+      onCancel() {
+        /* noop */
+      },
       getContainer,
       wallet,
     });
@@ -63,11 +65,15 @@ const MPCBackupSection: React.FC<{ address: string }> = ({ address }) => {
 
   const handleDownload = async () => {
     if (!passphrase) {
-      antdMessage.error(t('page.addressDetail.exportMPCModal.passphraseRequired'));
+      antdMessage.error(
+        t('page.addressDetail.exportMPCModal.passphraseRequired')
+      );
       return;
     }
     if (passphrase !== confirm) {
-      antdMessage.error(t('page.addressDetail.exportMPCModal.passphraseMismatch'));
+      antdMessage.error(
+        t('page.addressDetail.exportMPCModal.passphraseMismatch')
+      );
       return;
     }
     setExporting(true);
@@ -118,7 +124,9 @@ const MPCBackupSection: React.FC<{ address: string }> = ({ address }) => {
           <Input.Password
             value={passphrase}
             onChange={(e) => setPassphrase(e.target.value)}
-            placeholder={t('page.addressDetail.exportMPCModal.passphrasePlaceholder')}
+            placeholder={t(
+              'page.addressDetail.exportMPCModal.passphrasePlaceholder'
+            )}
           />
         </div>
         <div>
@@ -128,7 +136,9 @@ const MPCBackupSection: React.FC<{ address: string }> = ({ address }) => {
           <Input.Password
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            placeholder={t('page.addressDetail.exportMPCModal.confirmPlaceholder')}
+            placeholder={t(
+              'page.addressDetail.exportMPCModal.confirmPlaceholder'
+            )}
             onPressEnter={handleDownload}
           />
         </div>

@@ -57,7 +57,9 @@ export const CreateWalletType = () => {
           <div className="space-y-[8px]">
             <div className="flex items-center gap-[10px]">
               <RcAddAddressOptionSeedPhraseIcon className="w-[22px] h-[22px] shrink-0" />
-              <span>{t('page.newUserImport.createWalletType.seedPhraseWallet')}</span>
+              <span>
+                {t('page.newUserImport.createWalletType.seedPhraseWallet')}
+              </span>
             </div>
             <div className="text-[13px] font-normal text-r-neutral-foot leading-snug">
               {t('page.newUserImport.createWalletType.seedPhraseWalletDesc')}

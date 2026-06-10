@@ -113,7 +113,7 @@ async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
   let baseUrl = AWESOME_API_URL;
   try {
     const stored = await new Promise<Record<string, string>>((resolve) =>
-      chrome.storage.local.get(['awesome_api_url'], resolve),
+      chrome.storage.local.get(['awesome_api_url'], resolve)
     );
     if (stored.awesome_api_url) baseUrl = stored.awesome_api_url;
   } catch {
@@ -136,8 +136,8 @@ interface BalanceToken {
   contract_ticker_symbol: string;
   contract_decimals: number;
   balance: string;
-  quote: number;          // USD value of this holding
-  quote_rate: number;     // USD price per token
+  quote: number; // USD value of this holding
+  quote_rate: number; // USD price per token
   logo_url: string;
   type: string;
 }
@@ -151,7 +151,7 @@ interface BalanceApiResponse {
 interface AllBalanceApiResponse {
   ok: boolean;
   address: string;
-  byChain: Record<string, BalanceToken[]>;   // key = our chain slug
+  byChain: Record<string, BalanceToken[]>; // key = our chain slug
 }
 
 interface GasApiResponse {
@@ -187,7 +187,7 @@ export interface OnRampInitiateResponse {
   accountNumber: string;
   bankName: string;
   accountName: string;
-  expiresIn: number;       // seconds
+  expiresIn: number; // seconds
   // What lands in the wallet
   crypto: string;
   network: string;
@@ -209,7 +209,9 @@ class AwesomeApiService {
     const addr = address.toLowerCase();
 
     // Single multi-chain Ankr call — far more efficient than 7 parallel requests
-    const data = await getJson<AllBalanceApiResponse>(`/v1/balance/all/${addr}`);
+    const data = await getJson<AllBalanceApiResponse>(
+      `/v1/balance/all/${addr}`
+    );
 
     // Build a reverse map: slug → DeBank serverId
     const serverIdBySlug: Record<string, string> = {};
@@ -282,14 +284,16 @@ class AwesomeApiService {
     const toWei = (gwei: number): number => Math.round(gwei * 1e9);
 
     // baseFeeWei: prefer EIP-1559 base fee; fall back to legacy gas price
-    const baseFeeWei = data.baseFeeGwei != null
-      ? toWei(data.baseFeeGwei)
-      : toWei(data.gasPriceGwei);
+    const baseFeeWei =
+      data.baseFeeGwei != null
+        ? toWei(data.baseFeeGwei)
+        : toWei(data.gasPriceGwei);
 
     // priorityWei: miner tip (EIP-1559) or 10% of base as a heuristic
-    const priorityWei = data.maxPriorityFeeGwei != null
-      ? toWei(data.maxPriorityFeeGwei)
-      : Math.round(baseFeeWei * 0.1);
+    const priorityWei =
+      data.maxPriorityFeeGwei != null
+        ? toWei(data.maxPriorityFeeGwei)
+        : Math.round(baseFeeWei * 0.1);
 
     const levels: GasLevel[] = [
       {
@@ -353,17 +357,14 @@ class AwesomeApiService {
   async initiateNgnOnRamp(opts: {
     amountNgn: number;
     walletAddress: string;
-    crypto?: string;       // default 'USDT'
-    network?: string;      // default 'ethereum'
+    crypto?: string; // default 'USDT'
+    network?: string; // default 'ethereum'
     email?: string;
   }): Promise<OnRampInitiateResponse> {
-    return getJson<OnRampInitiateResponse>(
-      `/v1/onramp/ngn/initiate`,
-      {
-        method: 'POST',
-        body: JSON.stringify(opts),
-      },
-    );
+    return getJson<OnRampInitiateResponse>('/v1/onramp/ngn/initiate', {
+      method: 'POST',
+      body: JSON.stringify(opts),
+    });
   }
 }
 

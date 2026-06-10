@@ -19,8 +19,8 @@ import { useHistory } from 'react-router-dom';
 import { useNewUserGuideStore } from './hooks/useNewUserGuideStore';
 
 export const CreateSeedPhraseBooted = () => {
-  const wallet   = useWallet();
-  const history  = useHistory();
+  const wallet = useWallet();
+  const history = useHistory();
   const dispatch = useRabbyDispatch();
   const { setStore } = useNewUserGuideStore();
 
