@@ -33,6 +33,8 @@ import { generateSessionId } from '@/ui/utils/BLE/bleService';
 interface ApprovalParams {
   address: string;
   chainId?: number;
+  to?: string;
+  value?: string;
   from?: string;
   nonce?: string;
   isGnosis?: boolean;
@@ -83,6 +85,8 @@ export const MPCWaiting: React.FC<{
         // ── Step 3: Compute the hash that must be signed ───────────────────
         let msgHashHex: string;
         let signingTxId: string | undefined;
+        let signDescription: string;
+        let signApprovalType = approvalType ?? 'MPCApproval';
 
         if (approvalType === 'SignTx') {
           // Transaction signing — hash the unsigned EIP-155 / EIP-1559 tx
@@ -92,6 +96,13 @@ export const MPCWaiting: React.FC<{
           }
           const { msgHashHex: h } = await wallet.getMPCTxSignHash(signingTxId);
           msgHashHex = h;
+          signApprovalType = 'SignTx';
+          signDescription = buildSignDescription(
+            'Transaction',
+            account.address,
+            params.chainId,
+            params.to
+          );
         } else if (approvalType === 'SignTypedData') {
           // EIP-712 typed-data signing
           const typedData = (params.extra?.mpcTypedData as string) ?? '';
@@ -103,6 +114,12 @@ export const MPCWaiting: React.FC<{
             );
           }
           msgHashHex = await wallet.getMPCTypedDataSignHash(typedData, version);
+          signApprovalType = 'SignTypedData';
+          signDescription = buildSignDescription(
+            `Typed data ${version}`,
+            account.address,
+            params.chainId
+          );
         } else {
           // Personal message signing — EIP-191 hash.
           // The raw message hex was forwarded from SignText.tsx via params.extra.mpcRawMessage.
@@ -114,6 +131,12 @@ export const MPCWaiting: React.FC<{
             );
           }
           msgHashHex = await wallet.getMPCPersonalMessageSignHash(rawMessage);
+          signApprovalType = 'SignText';
+          signDescription = buildSignDescription(
+            params.extra?.signTextMethod || 'Personal message',
+            account.address,
+            params.chainId
+          );
         }
 
         // ── Step 4: Connect to the paired phone via BLE ────────────────────
@@ -140,7 +163,11 @@ export const MPCWaiting: React.FC<{
           ble,
           ctx.keyShare1Json,
           msgHashHex,
-          signingSessionId
+          signingSessionId,
+          {
+            approvalType: signApprovalType,
+            description: signDescription,
+          }
         );
         ble.disconnect();
         setBleStatus(BLEStatus.DISCONNECTED);
@@ -293,3 +320,20 @@ const BLEStatusBadge: React.FC<{ status: BLEStatus }> = ({ status }) => {
 };
 
 export default MPCWaiting;
+
+function buildSignDescription(
+  label: string,
+  address: string,
+  chainId?: number,
+  to?: string
+) {
+  const parts = [label, `from ${shortAddress(address)}`];
+  if (to) parts.push(`to ${shortAddress(to)}`);
+  if (chainId) parts.push(`on chain ${chainId}`);
+  return parts.join(' ');
+}
+
+function shortAddress(address: string) {
+  if (!address) return 'unknown account';
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}

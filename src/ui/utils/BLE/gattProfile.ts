@@ -62,6 +62,7 @@ export enum BLEMessageType {
   KEYGEN_DONE = 'keygen_done',
 
   // Signing rounds — P1 → P2
+  SIGN_INIT = 'sign_init',
   SIGN_R1 = 'sign_r1',
   SIGN_R3 = 'sign_r3',
 
@@ -97,8 +98,17 @@ export interface BLEPayload {
    * and reject stale or replayed packets.
    */
   sessionId: string;
-  /** Base64-encoded raw bytes from the TSS library (Uint8Array) */
+  /** Message-specific data. TSS rounds use base64-encoded raw bytes. */
   data: string;
+}
+
+export interface SignInitPayload {
+  /** 32-byte hash the phone will ask the user to approve */
+  msgHashHex: string;
+  /** Human-readable context displayed on the phone */
+  description: string;
+  /** Approval category, e.g. SignTx, SignText, SignTypedData */
+  approvalType: string;
 }
 
 // ─── BLE connection status (for UI feedback) ─────────────────────────────────

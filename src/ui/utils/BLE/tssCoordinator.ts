@@ -29,7 +29,7 @@ import {
   bytesToHex,
 } from '@ethereumjs/util';
 import { BLEService } from './bleService';
-import { BLEMessageType } from './gattProfile';
+import { BLEMessageType, SignInitPayload } from './gattProfile';
 
 // ─── Speed up Paillier key generation ────────────────────────────────────────
 //
@@ -210,7 +210,8 @@ export async function runSignP1(
   ble: BLEService,
   keyShare1Json: string,
   msgHashHex: string,
-  sessionId: string
+  sessionId: string,
+  signInit: Omit<SignInitPayload, 'msgHashHex'>
 ): Promise<SignResult> {
   const sid = sessionId.slice(0, 8);
   console.log(`[P1 SIGN ${sid}] createContext — start`);
@@ -223,6 +224,17 @@ export async function runSignP1(
 
   // ── Round 1: P1 → Phone ──────────────────────────────────────────────────
   const msg1Bytes = p1.step1();
+  const signInitPayload: SignInitPayload = {
+    ...signInit,
+    msgHashHex,
+  };
+  await ble.send({
+    type: BLEMessageType.SIGN_INIT,
+    sessionId,
+    data: JSON.stringify(signInitPayload),
+  });
+  console.log(`[P1 SIGN ${sid}] → SIGN_INIT sent`);
+
   console.log(
     `[P1 SIGN ${sid}] → SIGN_R1 (${msg1Bytes.length} bytes) sending…`
   );
